@@ -1,0 +1,31 @@
+html, body{
+  top: 0;
+  left: 0;
+  padding: 0;
+  margin: 0;
+  background-color: #111;
+}
+
+/*@font-face{
+  font-family: Proggy;
+  src: url(../font/ProggyClean.ttf);
+}
+*/
+#editor1 {
+  position: absolute;
+  height: 70%;
+  top: 0;
+  right: 0;
+  bottom: 30%;
+  left: 0;
+  width: 460px;
+}
+#editor2 {
+  position: absolute;
+  height: 30%;
+  top: 70%;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 460px;
+}
