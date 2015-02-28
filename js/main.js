@@ -18,4 +18,4 @@ function fibonacci(num) {
 var call = 'fibonacci(6)';
 
 var test = fibonacci.toString().concat(call);
-parse(test);
+parse(test)
