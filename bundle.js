@@ -4,17 +4,116 @@ module.exports = {
   paramNumber: 0,
   history: []
 }
-},{}],"/Users/karen/Documents/my_project/inception/js/main.js":[function(require,module,exports){
+},{}],"/Users/karen/Documents/my_project/inception/js/graphic.js":[function(require,module,exports){
+module.exports = {
+  zoomIn: function (value) {
+    camera.lookAt(new THREE.Vector3());
+  },
+
+  changeValue: function (value) {
+
+  },
+
+  zoomOut: function () {
+
+  }
+}
+
+var camera, scene, renderer;
+
+function init() {
+  var container = document.createElement('div');
+  document.body.appendChild(container);
+
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
+  camera.position.z = 2;
+
+  var CustomSinCurve = THREE.Curve.create(
+    function (scale) { //custom curve constructor
+      this.scale = (scale === undefined) ? 1 : scale;
+    },
+
+    function (t) { //getPoint: t is between 0-1
+      var tx = t * 3 - 1.5,
+        ty = Math.sin(2 * Math.PI * t),
+        tz = 0;
+
+      return new THREE.Vector3(tx, ty, tz).multiplyScalar(this.scale);
+    }
+  );
+
+  var path = new CustomSinCurve(10);
+
+  var geometry = new THREE.TubeGeometry(
+    path, //path
+    20, //segments
+    2, //radius
+    8, //radiusSegments
+    false //closed
+  );
+  var material = new THREE.MeshNormalMaterial();
+  var mesh = new THREE.Mesh(geometry, material);
+  scene.add(mesh);
+
+  renderer = new THREE.WebGLRenderer({
+    antialias: true
+  });
+  renderer.setClearColor(0xfafaff);
+  //renderer.setClearColor(0x2cc8ff);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  container.appendChild(renderer.domElement);
+
+  // window.addEventListener('resize', onWindowResize, false);
+
+  window.addEventListener('resize', onWindowResize, false);
+}
+
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  renderer.render(scene, camera);
+}
+
+init();
+animate();
+},{}],"/Users/karen/Documents/my_project/inception/js/incept.js":[function(require,module,exports){
+var graphic = require('./graphic.js');
+
+module.exports = function* (history) {
+  function zoomIn(value) {
+    //zoomIn another world
+    graphic.zoomIn(value);
+  }
+
+  function changeValue(value) {
+    graphic.changeValue(value);
+  }
+
+  function zoomOut() {
+    //get back to the outter world
+    //also change the value
+    graphic.zoomOut();
+  }
+
+  for (var i = 0; i < history.length; i++) {
+    if (typeof history[i].string === undefined) {
+      yield zoomIn(history[i].value);
+    } else {
+      yield changeValue(history[i].value);
+      yield zoomOut();
+    }
+  }
+}
+},{"./graphic.js":"/Users/karen/Documents/my_project/inception/js/graphic.js"}],"/Users/karen/Documents/my_project/inception/js/main.js":[function(require,module,exports){
 var parse = require('./parse.js');
-//var instruction = require('./instruction.js');
-
-// var editor1 = ace.edit("editor1");
-// editor1.setTheme("ace/theme/monokai");
-// editor1.getSession().setMode("ace/mode/javascript");
-
-// var editor2 = ace.edit("editor2");
-// editor2.setTheme("ace/theme/monokai");
-// editor2.getSession().setMode("ace/mode/javascript");
+var incept = require('./incept.js');
 
 function fibonacci(num) {
   if (num === 0) return 0;
@@ -25,8 +124,10 @@ function fibonacci(num) {
 var call = 'fibonacci(6)';
 
 var test = fibonacci.toString().concat(call);
-parse(test)
-},{"./parse.js":"/Users/karen/Documents/my_project/inception/js/parse.js"}],"/Users/karen/Documents/my_project/inception/js/parse.js":[function(require,module,exports){
+var history = parse(test).history;
+
+incept(history);
+},{"./incept.js":"/Users/karen/Documents/my_project/inception/js/incept.js","./parse.js":"/Users/karen/Documents/my_project/inception/js/parse.js"}],"/Users/karen/Documents/my_project/inception/js/parse.js":[function(require,module,exports){
 var falafel = require('falafel');
 var inspect = require('object-inspect');
 
@@ -76,7 +177,7 @@ module.exports = function (src) {
     //console.log(indent + value);
     _obj.history.push({
       string: source,
-      wat: indent + value
+      value: indent + value
     });
     //console.log('weird!!!' + nodes[id].source());
     return value;
@@ -90,7 +191,7 @@ module.exports = function (src) {
     var str = indent + nodes[id].id.name + '(' + args.join(', ') + ')';
     _obj.history.push({
       string: source,
-      wat: str
+      value: str
     });
     stack.push(id);
     //console.log('weird???' + nodes[id].source());

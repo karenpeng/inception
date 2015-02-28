@@ -47,7 +47,7 @@ module.exports = function (src) {
     //console.log(indent + value);
     _obj.history.push({
       string: source,
-      wat: indent + value
+      value: indent + value
     });
     //console.log('weird!!!' + nodes[id].source());
     return value;
@@ -61,7 +61,7 @@ module.exports = function (src) {
     var str = indent + nodes[id].id.name + '(' + args.join(', ') + ')';
     _obj.history.push({
       string: source,
-      wat: str
+      value: str
     });
     stack.push(id);
     //console.log('weird???' + nodes[id].source());
