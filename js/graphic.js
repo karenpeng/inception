@@ -1,6 +1,9 @@
 module.exports = {
   zoomIn: function (value) {
-    camera.lookAt(new THREE.Vector3());
+    //camera.lookAt(new THREE.Vector3());
+    setTimeout(function () {
+      //move the camera
+    }, 1000);
   },
 
   changeValue: function (value) {
@@ -12,42 +15,45 @@ module.exports = {
   }
 }
 
-var camera, scene, renderer;
+require('./CurveExtras.js');
+
+var camera, splineCamera, binormal, normal, scene, scale,
+  parent, splines, tube, material, tubeMesh,
+  renderer, rollercoaster, splineIndex, targetRotation;
 
 function init() {
+  rollercoaster = false;
+  splineIndex = 0;
+  targetRotation = 0;
+  scale = 2;
   var container = document.createElement('div');
   document.body.appendChild(container);
 
   scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
-  camera.position.z = 2;
+  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
+  //camera.position.z = 100;
+  camera.position.set(0, 20, 200);
 
-  var CustomSinCurve = THREE.Curve.create(
-    function (scale) { //custom curve constructor
-      this.scale = (scale === undefined) ? 1 : scale;
-    },
+  parent = new THREE.Object3D();
+  parent.position.y = 10;
+  scene.add(parent);
 
-    function (t) { //getPoint: t is between 0-1
-      var tx = t * 3 - 1.5,
-        ty = Math.sin(2 * Math.PI * t),
-        tz = 0;
+  splineCamera = new THREE.PerspectiveCamera(84, window.innerWidth / window.innerHeight, 0.01, 1000);
+  parent.add(splineCamera);
 
-      return new THREE.Vector3(tx, ty, tz).multiplyScalar(this.scale);
-    }
-  );
+  splines = require('./splines.js');
 
-  var path = new CustomSinCurve(10);
+  tube = new THREE.TubeGeometry(splines[splineIndex], 100, 2, 4, true);
+  //var geometry = new THREE.TorusKnotGeometry(0.5 - 0.12, 0.12);
+  material = new THREE.MeshNormalMaterial();
+  tubeMesh = new THREE.Mesh(tube, material);
+  tubeMesh.scale.set(scale, scale, scale);
+  //scene.add(tubeMesh);
+  parent.add(tubeMesh);
 
-  var geometry = new THREE.TubeGeometry(
-    path, //path
-    20, //segments
-    2, //radius
-    8, //radiusSegments
-    false //closed
-  );
-  var material = new THREE.MeshNormalMaterial();
-  var mesh = new THREE.Mesh(geometry, material);
-  scene.add(mesh);
+  var bgTube = new THREE.TubeGeometry(splines[4], 100, 2, 4, true);
+  var mesh = new THREE.Mesh(bgTube, material);
+  //parent.add(mesh);
 
   renderer = new THREE.WebGLRenderer({
     antialias: true
@@ -59,8 +65,22 @@ function init() {
   container.appendChild(renderer.domElement);
 
   // window.addEventListener('resize', onWindowResize, false);
+  binormal = new THREE.Vector3();
+  normal = new THREE.Vector3();
 
   window.addEventListener('resize', onWindowResize, false);
+
+  window.onkeydown = function (e) {
+    if (e.which === 32) {
+      e.preventDefault();
+      switchCamera();
+    }
+    if (e.which === 83) {
+      e.preventDefault();
+      switchSpline();
+    }
+  }
+
 }
 
 function onWindowResize() {
@@ -69,9 +89,64 @@ function onWindowResize() {
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
+function switchCamera() {
+  rollercoaster = !rollercoaster;
+}
+
+function switchSpline() {
+  parent.remove(tubeMesh);
+  tubeMesh = null;
+  splineIndex++;
+  if (splineIndex > splines.length - 1) splineIndex = 0;
+  tube = new THREE.TubeGeometry(splines[splineIndex], 100, 2, 4, true);
+  tubeMesh = new THREE.Mesh(tube, material);
+  tubeMesh.scale.set(scale, scale, scale);
+  parent.add(tubeMesh);
+}
+
+function render() {
+
+  var time = Date.now();
+  var loopTime = 20000;
+  var t = (time % loopTime) / loopTime;
+
+  var pos = tube.parameters.path.getPointAt(t);
+  pos.multiplyScalar(scale);
+
+  var segments = tube.tangents.length;
+  var pickt = t * segments;
+  var pick = Math.floor(pickt);
+  var pickNext = (pick + 1) % segments;
+
+  binormal.subVectors(tube.binormals[pickNext], tube.binormals[pick]);
+  binormal.multiplyScalar(pickt - pick).add(tube.binormals[pick]);
+
+  var dir = tube.parameters.path.getTangentAt(t);
+
+  var offset = 15;
+
+  normal.copy(binormal).cross(dir);
+
+  // We move on a offset on its binormal
+  pos.add(normal.clone().multiplyScalar(offset));
+
+  splineCamera.position.copy(pos);
+
+  var lookAt = tube.parameters.path.getPointAt((t + 30 / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
+
+  //this is called look ahead, not sure what it means
+  //lookAt.copy(pos).add(dir);
+  splineCamera.matrix.lookAt(splineCamera.position, lookAt, normal);
+  splineCamera.rotation.setFromRotationMatrix(splineCamera.matrix, splineCamera.rotation.order);
+
+  parent.rotation.y += (targetRotation - parent.rotation.y) * 0.05;
+  //parent.rotation.z = Math.sin(time * 0.001);
+  renderer.render(scene, rollercoaster ? splineCamera : camera);
+}
+
 function animate() {
   requestAnimationFrame(animate);
-  renderer.render(scene, camera);
+  render();
 }
 
 init();
