@@ -1,4 +1,47 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"/Users/karen/Documents/my_project/inception/js/dataStructure.js":[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"/Users/karen/Documents/my_project/inception/js/createGate.js":[function(require,module,exports){
+module.exports = function () {
+		// var plane1 = new THREE.PlaneBufferGeometry(60, 20, 6, 2);
+		var plane1 = new THREE.PlaneGeometry(60, 20, 3, 1);
+		plane1.applyMatrix(new THREE.Matrix4().makeTranslation(0, -10, 0));
+		// var material = new THREE.MeshDepthMaterial();
+		var material = new THREE.MeshNormalMaterial();
+		material.side = THREE.DoubleSide;
+		//var plane1 = new THREE.Mesh(geo, material);
+		//plane1.doubleSided = true;
+		var plane2 = plane1.clone();
+		plane2.applyMatrix(new THREE.Matrix4().makeRotationZ(Math.PI / 2));
+		//plane2.rotation.z = Math.PI / 2;
+		plane2.applyMatrix(new THREE.Matrix4().makeTranslation(10, 10, 0));
+		// plane2.position.x += 20;
+		// plane2.position.y += 20;
+		var plane3 = plane2.clone();
+		plane3.applyMatrix(new THREE.Matrix4().makeTranslation(-40, 0, 0));
+		//plane3.position.x -= 40;
+		var plane4 = plane1.clone();
+		plane4.applyMatrix(new THREE.Matrix4().makeTranslation(0, 40, 0));
+		//plane4.position.y += 40;
+		//var plane2 = new
+		//plane.lookAt(splineCamera.position);
+		planeParent = new THREE.Geometry();
+		// new THREE.GeometryUtils.merge(planeParent, plane1);
+		// new THREE.GeometryUtils.merge(planeParent, plane2);
+		// new THREE.GeometryUtils.merge(planeParent, plane3);
+		// new THREE.GeometryUtils.merge(planeParent, plane4);
+		planeParent.merge(plane1);
+		planeParent.merge(plane2);
+		planeParent.merge(plane3);
+		planeParent.merge(plane4);
+
+		planePP = new THREE.Mesh(planeParent, material);
+		//planePP.doubleSided = true;
+		//scene.add(planePP);
+		return planePP;
+		// scene.add(plane1);
+		// scene.add(plane2);
+		// scene.add(plane3);
+		// scene.add(plane4);
+}
+},{}],"/Users/karen/Documents/my_project/inception/js/dataStructure.js":[function(require,module,exports){
 module.exports = {
   functionName: null,
   paramNumber: 0,
@@ -23,17 +66,32 @@ module.exports = {
 }
 
 require('./vendor/CurveExtras.js');
+require('./vendor/stats.js');
+var createGate = require('./createGate.js');
 
-var camera, splineCamera, binormal, normal, scene, scale,
+var camera, splineCamera, cameraHelper, cameraEye, binormal, normal, scene, scale,
   parent, splines, tube, material, tubeMesh,
   renderer, rollercoaster, splineIndex, targetRotation;
 var cube;
+var plane;
+var planeParent, planePP;
+var lookAt;
+var stats;
+var windowHalfX = window.innerWidth / 2;
+var windowHalfY = window.innerHeight / 2;
+
+var targetRotation = 0;
+var targetRotationOnMouseDown = 0;
+
+var mouseX = 0;
+var mouseXOnMouseDown = 0;
 
 function init() {
+
   rollercoaster = false;
   splineIndex = 0;
   targetRotation = 0;
-  scale = 2;
+  scale = 1;
   var container = document.createElement('div');
   document.body.appendChild(container);
 
@@ -49,12 +107,48 @@ function init() {
 
   splineCamera = new THREE.PerspectiveCamera(84, window.innerWidth / window.innerHeight, 0.01, 1000);
   parent.add(splineCamera);
+  var light6 = new THREE.DirectionalLight(0xeeeeff, .8);
+  //in case you move the camera
+  //i still think that the camera should move freely
+  splineCamera.add(light6);
+
+  cameraHelper = new THREE.CameraHelper(splineCamera);
+  scene.add(cameraHelper);
+
+  cameraEye = new THREE.Mesh(new THREE.SphereGeometry(2), new THREE.MeshBasicMaterial({
+    color: 0xdddddd
+  }));
+  parent.add(cameraEye);
+
+  cameraHelper.visible = true;
+  cameraEye.visible = true;
+
+  var ambientLight = new THREE.AmbientLight(0x000000);
+  scene.add(ambientLight);
+
+  // var lights = [];
+  // lights[0] = new THREE.PointLight(0xffffff, 1, 0);
+  // lights[1] = new THREE.PointLight(0xffffff, 1, 0);
+  // lights[2] = new THREE.PointLight(0xffffff, 1, 0);
+
+  // lights[0].position.set(0, 200, 0);
+  // lights[1].position.set(100, 200, 100);
+  // lights[2].position.set(-100, -200, -100);
+
+  // scene.add(lights[0]);
+  // scene.add(lights[1]);
+  // scene.add(lights[2]);
 
   splines = require('./splines.js');
 
   tube = new THREE.TubeGeometry(splines[splineIndex], 100, 2, 4, true);
   //var geometry = new THREE.TorusKnotGeometry(0.5 - 0.12, 0.12);
   material = new THREE.MeshNormalMaterial();
+  //material = new THREE.MeshDepthMaterial();
+  // material = new THREE.MeshPhongMaterial({
+  //   color: 0xeeff77,
+  //   emissive: 0xeeff77
+  // });
   tubeMesh = new THREE.Mesh(tube, material);
   tubeMesh.scale.set(scale, scale, scale);
   //scene.add(tubeMesh);
@@ -64,16 +158,14 @@ function init() {
   var mesh = new THREE.Mesh(bgTube, material);
   //parent.add(mesh);
 
+  planePP = createGate();
+  //scene.add(planePP);
+
   // window.addEventListener('resize', onWindowResize, false);
   binormal = new THREE.Vector3();
   normal = new THREE.Vector3();
 
   /*testing*/
-  var geometry = new THREE.BoxGeometry(10, 10, 10);
-  cube = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
-    color: 0xddaa00
-  }));
-  splineCamera.add(cube);
 
   renderer = new THREE.WebGLRenderer({
     antialias: true
@@ -84,19 +176,60 @@ function init() {
 
   container.appendChild(renderer.domElement);
 
+  stats = new Stats();
+  console.log(stats)
+  stats.domElement.style.position = 'absolute';
+  stats.domElement.style.top = '0px';
+  container.appendChild(stats.domElement);
+
   window.addEventListener('resize', onWindowResize, false);
+  renderer.domElement.addEventListener('mousedown', onDocumentMouseDown, false);
+  renderer.domElement.addEventListener('touchstart', onDocumentTouchStart, false);
+  renderer.domElement.addEventListener('touchmove', onDocumentTouchMove, false);
 
   window.onkeydown = function (e) {
+    //space
     if (e.which === 32) {
       e.preventDefault();
       switchCamera();
     }
+    //s
     if (e.which === 83) {
       e.preventDefault();
       switchSpline();
     }
+    //a
+    if (e.which === 65) {
+      e.preventDefault();
+      addGate();
+    }
+    //b
+    if (e.which === 66) {
+      e.preventDefault();
+      addGate1();
+    }
   }
 
+}
+
+//module.exports = {
+//  addGate: function () {
+function addGate() {
+    var gate = createGate();
+    gate.lookAt(splineCamera.position);
+    //gate.matrix.lookAt(gate.position, lookAt, normal);
+    gate.position.copy(splineCamera.position);
+    //splineCamera.add(gate);
+    parent.add(gate);
+  }
+  //}
+function addGate1() {
+  var gate = createGate();
+  gate.lookAt(splineCamera.position);
+  //gate.matrix.lookAt(gate.position, lookAt, normal);
+  gate.position.copy(splineCamera.position);
+  splineCamera.add(gate);
+  //parent.add(gate);
 }
 
 function onWindowResize() {
@@ -111,6 +244,11 @@ function switchCamera() {
 
 function switchSpline() {
   parent.remove(tubeMesh);
+  //TODO: find out how to dispose geometry and material
+  tubeMesh.children.forEach(function (item) {
+      item.dispose();
+    })
+    //tubeMesh.dispose();
   tubeMesh = null;
   splineIndex++;
   if (splineIndex > splines.length - 1) splineIndex = 0;
@@ -122,7 +260,10 @@ function switchSpline() {
 
 function render() {
 
+  //if (rollercoaster) {
   updateCamera();
+  //}
+  stats.update();
   renderer.render(scene, rollercoaster ? splineCamera : camera);
 
   //console.log(splineCamera.position);
@@ -141,8 +282,8 @@ function updateCamera() {
   var pick = Math.floor(pickt);
   var pickNext = (pick + 1) % segments;
 
-  binormal.subVectors(tube.binormals[pickNext], tube.binormals[pick]);
-  binormal.multiplyScalar(pickt - pick).add(tube.binormals[pick]);
+  // binormal.subVectors(tube.binormals[pickNext], tube.binormals[pick]);
+  // binormal.multiplyScalar(pickt - pick).add(tube.binormals[pick]);
 
   var dir = tube.parameters.path.getTangentAt(t);
 
@@ -155,24 +296,93 @@ function updateCamera() {
 
   splineCamera.position.copy(pos);
 
-  var lookAt = tube.parameters.path.getPointAt((t + 30 / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
+  cameraEye.position.copy(pos);
+
+  lookAt = tube.parameters.path.getPointAt((t + 30 / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
 
   //this is called look ahead, not sure what it means
   //lookAt.copy(pos).add(dir);
   splineCamera.matrix.lookAt(splineCamera.position, lookAt, normal);
   splineCamera.rotation.setFromRotationMatrix(splineCamera.matrix, splineCamera.rotation.order);
-
-  //parent.rotation.y += (targetRotation - parent.rotation.y) * 0.05;
+  cameraHelper.update();
+  parent.rotation.y += (targetRotation - parent.rotation.y) * 0.05;
 }
 
 function animate() {
   requestAnimationFrame(animate);
+  planePP.lookAt(splineCamera.position);
+  planePP.position.copy(splineCamera.position);
   render();
 }
 
 init();
 animate();
-},{"./splines.js":"/Users/karen/Documents/my_project/inception/js/splines.js","./vendor/CurveExtras.js":"/Users/karen/Documents/my_project/inception/js/vendor/CurveExtras.js"}],"/Users/karen/Documents/my_project/inception/js/incept.js":[function(require,module,exports){
+
+//mouse!
+
+function onDocumentMouseDown(event) {
+
+  event.preventDefault();
+
+  renderer.domElement.addEventListener('mousemove', onDocumentMouseMove, false);
+  renderer.domElement.addEventListener('mouseup', onDocumentMouseUp, false);
+  renderer.domElement.addEventListener('mouseout', onDocumentMouseOut, false);
+
+  mouseXOnMouseDown = event.clientX - windowHalfX;
+  targetRotationOnMouseDown = targetRotation;
+
+}
+
+function onDocumentMouseMove(event) {
+
+  mouseX = event.clientX - windowHalfX;
+
+  targetRotation = targetRotationOnMouseDown + (mouseX - mouseXOnMouseDown) * 0.02;
+
+}
+
+function onDocumentMouseUp(event) {
+
+  renderer.domElement.removeEventListener('mousemove', onDocumentMouseMove, false);
+  renderer.domElement.removeEventListener('mouseup', onDocumentMouseUp, false);
+  renderer.domElement.removeEventListener('mouseout', onDocumentMouseOut, false);
+
+}
+
+function onDocumentMouseOut(event) {
+
+  renderer.domElement.removeEventListener('mousemove', onDocumentMouseMove, false);
+  renderer.domElement.removeEventListener('mouseup', onDocumentMouseUp, false);
+  renderer.domElement.removeEventListener('mouseout', onDocumentMouseOut, false);
+
+}
+
+function onDocumentTouchStart(event) {
+
+  if (event.touches.length == 1) {
+
+    event.preventDefault();
+
+    mouseXOnMouseDown = event.touches[0].pageX - windowHalfX;
+    targetRotationOnMouseDown = targetRotation;
+
+  }
+
+}
+
+function onDocumentTouchMove(event) {
+
+  if (event.touches.length == 1) {
+
+    event.preventDefault();
+
+    mouseX = event.touches[0].pageX - windowHalfX;
+    targetRotation = targetRotationOnMouseDown + (mouseX - mouseXOnMouseDown) * 0.05;
+
+  }
+
+}
+},{"./createGate.js":"/Users/karen/Documents/my_project/inception/js/createGate.js","./splines.js":"/Users/karen/Documents/my_project/inception/js/splines.js","./vendor/CurveExtras.js":"/Users/karen/Documents/my_project/inception/js/vendor/CurveExtras.js","./vendor/stats.js":"/Users/karen/Documents/my_project/inception/js/vendor/stats.js"}],"/Users/karen/Documents/my_project/inception/js/incept.js":[function(require,module,exports){
 var graphic = require('./graphic.js');
 
 //something i know from here:
@@ -656,6 +866,165 @@ THREE.Curves.DecoratedTorusKnot5c = THREE.Curve.create(
   }
 
 );
+},{}],"/Users/karen/Documents/my_project/inception/js/vendor/stats.js":[function(require,module,exports){
+/**
+ * @author mrdoob / http://mrdoob.com/
+ */
+
+var Stats = function () {
+
+  var startTime = Date.now(),
+    prevTime = startTime;
+  var ms = 0,
+    msMin = Infinity,
+    msMax = 0;
+  var fps = 0,
+    fpsMin = Infinity,
+    fpsMax = 0;
+  var frames = 0,
+    mode = 0;
+
+  var container = document.createElement('div');
+  container.id = 'stats';
+  container.addEventListener('mousedown', function (event) {
+    event.preventDefault();
+    setMode(++mode % 2)
+  }, false);
+  container.style.cssText = 'width:80px;opacity:0.9;cursor:pointer';
+
+  var fpsDiv = document.createElement('div');
+  fpsDiv.id = 'fps';
+  fpsDiv.style.cssText = 'padding:0 0 3px 3px;text-align:left;background-color:#002';
+  container.appendChild(fpsDiv);
+
+  var fpsText = document.createElement('div');
+  fpsText.id = 'fpsText';
+  fpsText.style.cssText = 'color:#0ff;font-family:Helvetica,Arial,sans-serif;font-size:9px;font-weight:bold;line-height:15px';
+  fpsText.innerHTML = 'FPS';
+  fpsDiv.appendChild(fpsText);
+
+  var fpsGraph = document.createElement('div');
+  fpsGraph.id = 'fpsGraph';
+  fpsGraph.style.cssText = 'position:relative;width:74px;height:30px;background-color:#0ff';
+  fpsDiv.appendChild(fpsGraph);
+
+  while (fpsGraph.children.length < 74) {
+
+    var bar = document.createElement('span');
+    bar.style.cssText = 'width:1px;height:30px;float:left;background-color:#113';
+    fpsGraph.appendChild(bar);
+
+  }
+
+  var msDiv = document.createElement('div');
+  msDiv.id = 'ms';
+  msDiv.style.cssText = 'padding:0 0 3px 3px;text-align:left;background-color:#020;display:none';
+  container.appendChild(msDiv);
+
+  var msText = document.createElement('div');
+  msText.id = 'msText';
+  msText.style.cssText = 'color:#0f0;font-family:Helvetica,Arial,sans-serif;font-size:9px;font-weight:bold;line-height:15px';
+  msText.innerHTML = 'MS';
+  msDiv.appendChild(msText);
+
+  var msGraph = document.createElement('div');
+  msGraph.id = 'msGraph';
+  msGraph.style.cssText = 'position:relative;width:74px;height:30px;background-color:#0f0';
+  msDiv.appendChild(msGraph);
+
+  while (msGraph.children.length < 74) {
+
+    var bar = document.createElement('span');
+    bar.style.cssText = 'width:1px;height:30px;float:left;background-color:#131';
+    msGraph.appendChild(bar);
+
+  }
+
+  var setMode = function (value) {
+
+    mode = value;
+
+    switch (mode) {
+
+    case 0:
+      fpsDiv.style.display = 'block';
+      msDiv.style.display = 'none';
+      break;
+    case 1:
+      fpsDiv.style.display = 'none';
+      msDiv.style.display = 'block';
+      break;
+    }
+
+  };
+
+  var updateGraph = function (dom, value) {
+
+    var child = dom.appendChild(dom.firstChild);
+    child.style.height = value + 'px';
+
+  };
+
+  return {
+
+    REVISION: 12,
+
+    domElement: container,
+
+    setMode: setMode,
+
+    begin: function () {
+
+      startTime = Date.now();
+
+    },
+
+    end: function () {
+
+      var time = Date.now();
+
+      ms = time - startTime;
+      msMin = Math.min(msMin, ms);
+      msMax = Math.max(msMax, ms);
+
+      msText.textContent = ms + ' MS (' + msMin + '-' + msMax + ')';
+      updateGraph(msGraph, Math.min(30, 30 - (ms / 200) * 30));
+
+      frames++;
+
+      if (time > prevTime + 1000) {
+
+        fps = Math.round((frames * 1000) / (time - prevTime));
+        fpsMin = Math.min(fpsMin, fps);
+        fpsMax = Math.max(fpsMax, fps);
+
+        fpsText.textContent = fps + ' FPS (' + fpsMin + '-' + fpsMax + ')';
+        updateGraph(fpsGraph, Math.min(30, 30 - (fps / 100) * 30));
+
+        prevTime = time;
+        frames = 0;
+
+      }
+
+      return time;
+
+    },
+
+    update: function () {
+
+      startTime = this.end();
+
+    }
+
+  }
+
+};
+
+//if (typeof module === 'object') {
+
+module.exports = Stats;
+
+//}
 },{}],"/Users/karen/Documents/my_project/inception/node_modules/falafel/index.js":[function(require,module,exports){
 var parse = require('acorn').parse;
 
