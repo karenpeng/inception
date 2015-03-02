@@ -15,11 +15,12 @@ module.exports = {
   }
 }
 
-require('./CurveExtras.js');
+require('./vendor/CurveExtras.js');
 
 var camera, splineCamera, binormal, normal, scene, scale,
   parent, splines, tube, material, tubeMesh,
   renderer, rollercoaster, splineIndex, targetRotation;
+var cube;
 
 function init() {
   rollercoaster = false;
@@ -30,6 +31,7 @@ function init() {
   document.body.appendChild(container);
 
   scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0xefd1b5, 0.25, 1);
   camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
   //camera.position.z = 100;
   camera.position.set(0, 20, 200);
@@ -55,6 +57,17 @@ function init() {
   var mesh = new THREE.Mesh(bgTube, material);
   //parent.add(mesh);
 
+  // window.addEventListener('resize', onWindowResize, false);
+  binormal = new THREE.Vector3();
+  normal = new THREE.Vector3();
+
+  /*testing*/
+  var geometry = new THREE.BoxGeometry(10, 10, 10);
+  cube = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
+    color: 0xddaa00
+  }));
+  splineCamera.add(cube);
+
   renderer = new THREE.WebGLRenderer({
     antialias: true
   });
@@ -63,10 +76,6 @@ function init() {
   renderer.setSize(window.innerWidth, window.innerHeight);
 
   container.appendChild(renderer.domElement);
-
-  // window.addEventListener('resize', onWindowResize, false);
-  binormal = new THREE.Vector3();
-  normal = new THREE.Vector3();
 
   window.addEventListener('resize', onWindowResize, false);
 
@@ -106,6 +115,13 @@ function switchSpline() {
 
 function render() {
 
+  updateCamera();
+  renderer.render(scene, rollercoaster ? splineCamera : camera);
+
+  //console.log(splineCamera.position);
+}
+
+function updateCamera() {
   var time = Date.now();
   var loopTime = 20000;
   var t = (time % loopTime) / loopTime;
@@ -139,9 +155,7 @@ function render() {
   splineCamera.matrix.lookAt(splineCamera.position, lookAt, normal);
   splineCamera.rotation.setFromRotationMatrix(splineCamera.matrix, splineCamera.rotation.order);
 
-  parent.rotation.y += (targetRotation - parent.rotation.y) * 0.05;
-  //parent.rotation.z = Math.sin(time * 0.001);
-  renderer.render(scene, rollercoaster ? splineCamera : camera);
+  //parent.rotation.y += (targetRotation - parent.rotation.y) * 0.05;
 }
 
 function animate() {

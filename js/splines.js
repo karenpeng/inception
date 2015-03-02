@@ -1,5 +1,6 @@
 module.exports =
-  [new THREE.Curves.GrannyKnot(),
+  [
+    new THREE.Curves.GrannyKnot(),
     new THREE.Curves.HeartCurve(3.5),
     new THREE.Curves.VivianiCurve(70),
     new THREE.Curves.KnotCurve(),

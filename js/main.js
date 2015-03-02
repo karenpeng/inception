@@ -7,9 +7,15 @@ function fibonacci(num) {
   return fibonacci(num - 1) + fibonacci(num - 2);
 }
 
-var call = 'fibonacci(6)';
+var call = 'fibonacci(2)';
 
 var test = fibonacci.toString().concat(call);
 var history = parse(test).history;
 
-incept(history);
+//console.log(history)
+
+// var iterator = incept(history);
+// iterator.next();
+history.forEach(function (item) {
+  console.log(item)
+})

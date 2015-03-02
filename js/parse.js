@@ -13,7 +13,7 @@ module.exports = function (src) {
       _obj.paramNumber = node.params.length;
     }
     if (node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression') {
-      console.log('!!! ' + node.source());
+      //console.log('!!! ' + node.source());
       //node.body.update('{' + '_enter(' + id + ', arguments ,"' + node.source() + '");' + node.body.body
       node.body.update('{' + '_enter(' + id + ',arguments);' + node.body.body
         .map(function (x) {
@@ -26,7 +26,7 @@ module.exports = function (src) {
       nodes[id] = node;
       id++;
     } else if (node.type === 'ReturnStatement') {
-      console.log('??? ' + node.source());
+      //console.log('??? ' + node.source());
       node.argument.update(
         '_exit(' + id + ',' + node.argument.source() + ', "' + node.source() + '")'
       );

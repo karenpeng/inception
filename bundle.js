@@ -1,4 +1,341 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"/Users/karen/Documents/my_project/inception/js/CurveExtras.js":[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"/Users/karen/Documents/my_project/inception/js/dataStructure.js":[function(require,module,exports){
+module.exports = {
+  functionName: null,
+  paramNumber: 0,
+  history: []
+}
+},{}],"/Users/karen/Documents/my_project/inception/js/graphic.js":[function(require,module,exports){
+module.exports = {
+  zoomIn: function (value) {
+    //camera.lookAt(new THREE.Vector3());
+    setTimeout(function () {
+      //move the camera
+    }, 1000);
+  },
+
+  changeValue: function (value) {
+
+  },
+
+  zoomOut: function () {
+
+  }
+}
+
+require('./vendor/CurveExtras.js');
+
+var camera, splineCamera, binormal, normal, scene, scale,
+  parent, splines, tube, material, tubeMesh,
+  renderer, rollercoaster, splineIndex, targetRotation;
+var cube;
+
+function init() {
+  rollercoaster = false;
+  splineIndex = 0;
+  targetRotation = 0;
+  scale = 2;
+  var container = document.createElement('div');
+  document.body.appendChild(container);
+
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0xefd1b5, 0.25, 1);
+  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
+  //camera.position.z = 100;
+  camera.position.set(0, 20, 200);
+
+  parent = new THREE.Object3D();
+  parent.position.y = 10;
+  scene.add(parent);
+
+  splineCamera = new THREE.PerspectiveCamera(84, window.innerWidth / window.innerHeight, 0.01, 1000);
+  parent.add(splineCamera);
+
+  splines = require('./splines.js');
+
+  tube = new THREE.TubeGeometry(splines[splineIndex], 100, 2, 4, true);
+  //var geometry = new THREE.TorusKnotGeometry(0.5 - 0.12, 0.12);
+  material = new THREE.MeshNormalMaterial();
+  tubeMesh = new THREE.Mesh(tube, material);
+  tubeMesh.scale.set(scale, scale, scale);
+  //scene.add(tubeMesh);
+  parent.add(tubeMesh);
+
+  var bgTube = new THREE.TubeGeometry(splines[4], 100, 2, 4, true);
+  var mesh = new THREE.Mesh(bgTube, material);
+  //parent.add(mesh);
+
+  // window.addEventListener('resize', onWindowResize, false);
+  binormal = new THREE.Vector3();
+  normal = new THREE.Vector3();
+
+  /*testing*/
+  var geometry = new THREE.BoxGeometry(10, 10, 10);
+  cube = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
+    color: 0xddaa00
+  }));
+  splineCamera.add(cube);
+
+  renderer = new THREE.WebGLRenderer({
+    antialias: true
+  });
+  renderer.setClearColor(0xfafaff);
+  //renderer.setClearColor(0x2cc8ff);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  container.appendChild(renderer.domElement);
+
+  window.addEventListener('resize', onWindowResize, false);
+
+  window.onkeydown = function (e) {
+    if (e.which === 32) {
+      e.preventDefault();
+      switchCamera();
+    }
+    if (e.which === 83) {
+      e.preventDefault();
+      switchSpline();
+    }
+  }
+
+}
+
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function switchCamera() {
+  rollercoaster = !rollercoaster;
+}
+
+function switchSpline() {
+  parent.remove(tubeMesh);
+  tubeMesh = null;
+  splineIndex++;
+  if (splineIndex > splines.length - 1) splineIndex = 0;
+  tube = new THREE.TubeGeometry(splines[splineIndex], 100, 2, 4, true);
+  tubeMesh = new THREE.Mesh(tube, material);
+  tubeMesh.scale.set(scale, scale, scale);
+  parent.add(tubeMesh);
+}
+
+function render() {
+
+  updateCamera();
+  renderer.render(scene, rollercoaster ? splineCamera : camera);
+
+  //console.log(splineCamera.position);
+}
+
+function updateCamera() {
+  var time = Date.now();
+  var loopTime = 20000;
+  var t = (time % loopTime) / loopTime;
+
+  var pos = tube.parameters.path.getPointAt(t);
+  pos.multiplyScalar(scale);
+
+  var segments = tube.tangents.length;
+  var pickt = t * segments;
+  var pick = Math.floor(pickt);
+  var pickNext = (pick + 1) % segments;
+
+  binormal.subVectors(tube.binormals[pickNext], tube.binormals[pick]);
+  binormal.multiplyScalar(pickt - pick).add(tube.binormals[pick]);
+
+  var dir = tube.parameters.path.getTangentAt(t);
+
+  var offset = 15;
+
+  normal.copy(binormal).cross(dir);
+
+  // We move on a offset on its binormal
+  pos.add(normal.clone().multiplyScalar(offset));
+
+  splineCamera.position.copy(pos);
+
+  var lookAt = tube.parameters.path.getPointAt((t + 30 / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
+
+  //this is called look ahead, not sure what it means
+  //lookAt.copy(pos).add(dir);
+  splineCamera.matrix.lookAt(splineCamera.position, lookAt, normal);
+  splineCamera.rotation.setFromRotationMatrix(splineCamera.matrix, splineCamera.rotation.order);
+
+  //parent.rotation.y += (targetRotation - parent.rotation.y) * 0.05;
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  render();
+}
+
+init();
+animate();
+},{"./splines.js":"/Users/karen/Documents/my_project/inception/js/splines.js","./vendor/CurveExtras.js":"/Users/karen/Documents/my_project/inception/js/vendor/CurveExtras.js"}],"/Users/karen/Documents/my_project/inception/js/incept.js":[function(require,module,exports){
+var graphic = require('./graphic.js');
+
+//something i know from here:
+//1.how many layers are there
+//2.when to zoomIn
+//3.when to return value
+//4.when to zoomOut
+//so...maybe i could write instruction to build the world from here?
+
+module.exports = function* (history) {
+
+  //graphic.makeCubes(history.length);
+  console.log('hey')
+
+  function zoomIn(value) {
+    //zoomIn another world
+    graphic.zoomIn(value);
+  }
+
+  function changeValue(value) {
+    graphic.changeValue(value);
+  }
+
+  function zoomOut() {
+    //get back to the outter world
+    //also change the value
+    graphic.zoomOut();
+  }
+
+  for (var i = 0; i < history.length; i++) {
+    if (typeof history[i].string === undefined) {
+      yield zoomIn(history[i].value);
+    } else {
+      yield changeValue(history[i].value);
+      yield zoomOut();
+    }
+  }
+}
+},{"./graphic.js":"/Users/karen/Documents/my_project/inception/js/graphic.js"}],"/Users/karen/Documents/my_project/inception/js/main.js":[function(require,module,exports){
+var parse = require('./parse.js');
+var incept = require('./incept.js');
+
+function fibonacci(num) {
+  if (num === 0) return 0;
+  if (num === 1) return 1;
+  return fibonacci(num - 1) + fibonacci(num - 2);
+}
+
+var call = 'fibonacci(2)';
+
+var test = fibonacci.toString().concat(call);
+var history = parse(test).history;
+
+//console.log(history)
+
+// var iterator = incept(history);
+// iterator.next();
+history.forEach(function (item) {
+  console.log(item)
+})
+},{"./incept.js":"/Users/karen/Documents/my_project/inception/js/incept.js","./parse.js":"/Users/karen/Documents/my_project/inception/js/parse.js"}],"/Users/karen/Documents/my_project/inception/js/parse.js":[function(require,module,exports){
+var falafel = require('falafel');
+var inspect = require('object-inspect');
+
+module.exports = function (src) {
+
+  var id = 0;
+  var nodes = {};
+  var _obj = require('./dataStructure.js');
+
+  var out = falafel(src, function (node) {
+    if (node.type === 'FunctionDeclaration') {
+      _obj.functionName = node.id.name;
+      _obj.paramNumber = node.params.length;
+    }
+    if (node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression') {
+      //console.log('!!! ' + node.source());
+      //node.body.update('{' + '_enter(' + id + ', arguments ,"' + node.source() + '");' + node.body.body
+      node.body.update('{' + '_enter(' + id + ',arguments);' + node.body.body
+        .map(function (x) {
+          return x.source()
+        })
+        .join(';\n')
+        // + '_exit(' + id + ',null,"' + node.source() + '");' + '}'
+        + '_exit(' + id + ');' + '}'
+      );
+      nodes[id] = node;
+      id++;
+    } else if (node.type === 'ReturnStatement') {
+      //console.log('??? ' + node.source());
+      node.argument.update(
+        '_exit(' + id + ',' + node.argument.source() + ', "' + node.source() + '")'
+      );
+      nodes[id] = node;
+      id++;
+    }
+  }).toString();
+
+  // console.log(out);
+  // console.log(nodes);
+
+  var stack = [];
+  Function(['_exit', '_enter'], out)(exit, enter);
+
+  function exit(id, value, source) {
+    stack.pop();
+    var indent = Array(stack.length + 1).join(' ');
+    //console.log(indent + value);
+    _obj.history.push({
+      string: source,
+      value: indent + value
+    });
+    //console.log('weird!!!' + nodes[id].source());
+    return value;
+  }
+
+  function enter(id, args, source) {
+    var indent = Array(stack.length + 1).join(' ');
+    args = [].slice.call(args).map(inspect);
+    //console.log(indent + nodes[id].id.name + '(' + args.join(', ') + ')');
+
+    var str = indent + nodes[id].id.name + '(' + args.join(', ') + ')';
+    _obj.history.push({
+      string: source,
+      value: str
+    });
+    stack.push(id);
+    //console.log('weird???' + nodes[id].source());
+  }
+
+  console.log(_obj);
+  return _obj;
+
+}
+},{"./dataStructure.js":"/Users/karen/Documents/my_project/inception/js/dataStructure.js","falafel":"/Users/karen/Documents/my_project/inception/node_modules/falafel/index.js","object-inspect":"/Users/karen/Documents/my_project/inception/node_modules/object-inspect/index.js"}],"/Users/karen/Documents/my_project/inception/js/splines.js":[function(require,module,exports){
+module.exports =
+  [
+    new THREE.Curves.GrannyKnot(),
+    new THREE.Curves.HeartCurve(3.5),
+    new THREE.Curves.VivianiCurve(70),
+    new THREE.Curves.KnotCurve(),
+    new THREE.Curves.HelixCurve(),
+    new THREE.Curves.TrefoilKnot(),
+    new THREE.Curves.TorusKnot(20),
+    new THREE.Curves.CinquefoilKnot(20),
+    new THREE.Curves.TrefoilPolynomialKnot(14),
+    new THREE.Curves.FigureEightPolynomialKnot(),
+    new THREE.Curves.DecoratedTorusKnot4a(),
+    new THREE.Curves.DecoratedTorusKnot4b(),
+    new THREE.Curves.DecoratedTorusKnot5a(),
+    new THREE.Curves.DecoratedTorusKnot5c(),
+    new THREE.SplineCurve3([
+      new THREE.Vector3(0, 10, -10), new THREE.Vector3(10, 0, -10), new THREE.Vector3(20, 0, 0), new THREE.Vector3(30, 0, 10), new THREE.Vector3(30, 0, 20), new THREE.Vector3(20, 0, 30), new THREE.Vector3(10, 0, 30), new THREE.Vector3(0, 0, 30), new THREE.Vector3(-10, 10, 30), new THREE.Vector3(-10, 20, 30), new THREE.Vector3(0, 30, 30), new THREE.Vector3(10, 30, 30), new THREE.Vector3(20, 30, 15), new THREE.Vector3(10, 30, 10), new THREE.Vector3(0, 30, 10), new THREE.Vector3(-10, 20, 10), new THREE.Vector3(-10, 10, 10), new THREE.Vector3(0, 0, 10), new THREE.Vector3(10, -10, 10), new THREE.Vector3(20, -15, 10), new THREE.Vector3(30, -15, 10), new THREE.Vector3(40, -15, 10), new THREE.Vector3(50, -15, 10), new THREE.Vector3(60, 0, 10), new THREE.Vector3(70, 0, 0), new THREE.Vector3(80, 0, 0), new THREE.Vector3(90, 0, 0), new THREE.Vector3(100, 0, 0)
+    ]),
+    new THREE.ClosedSplineCurve3([
+      new THREE.Vector3(0, -40, -40),
+      new THREE.Vector3(0, 40, -40),
+      new THREE.Vector3(0, 140, -40),
+      new THREE.Vector3(0, 40, 40),
+      new THREE.Vector3(0, -40, 40),
+    ])
+  ]
+},{}],"/Users/karen/Documents/my_project/inception/js/vendor/CurveExtras.js":[function(require,module,exports){
 /*
  * A bunch of parametric curves
  * @author zz85
@@ -319,311 +656,6 @@ THREE.Curves.DecoratedTorusKnot5c = THREE.Curve.create(
   }
 
 );
-},{}],"/Users/karen/Documents/my_project/inception/js/dataStructure.js":[function(require,module,exports){
-module.exports = {
-  functionName: null,
-  paramNumber: 0,
-  history: []
-}
-},{}],"/Users/karen/Documents/my_project/inception/js/graphic.js":[function(require,module,exports){
-module.exports = {
-  zoomIn: function (value) {
-    //camera.lookAt(new THREE.Vector3());
-    setTimeout(function () {
-      //move the camera
-    }, 1000);
-  },
-
-  changeValue: function (value) {
-
-  },
-
-  zoomOut: function () {
-
-  }
-}
-
-require('./CurveExtras.js');
-
-var camera, splineCamera, binormal, normal, scene, scale,
-  parent, splines, tube, material, tubeMesh,
-  renderer, rollercoaster, splineIndex, targetRotation;
-
-function init() {
-  rollercoaster = false;
-  splineIndex = 0;
-  targetRotation = 0;
-  scale = 2;
-  var container = document.createElement('div');
-  document.body.appendChild(container);
-
-  scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
-  //camera.position.z = 100;
-  camera.position.set(0, 20, 200);
-
-  parent = new THREE.Object3D();
-  parent.position.y = 10;
-  scene.add(parent);
-
-  splineCamera = new THREE.PerspectiveCamera(84, window.innerWidth / window.innerHeight, 0.01, 1000);
-  parent.add(splineCamera);
-
-  splines = require('./splines.js');
-
-  tube = new THREE.TubeGeometry(splines[splineIndex], 100, 2, 4, true);
-  //var geometry = new THREE.TorusKnotGeometry(0.5 - 0.12, 0.12);
-  material = new THREE.MeshNormalMaterial();
-  tubeMesh = new THREE.Mesh(tube, material);
-  tubeMesh.scale.set(scale, scale, scale);
-  //scene.add(tubeMesh);
-  parent.add(tubeMesh);
-
-  var bgTube = new THREE.TubeGeometry(splines[4], 100, 2, 4, true);
-  var mesh = new THREE.Mesh(bgTube, material);
-  //parent.add(mesh);
-
-  renderer = new THREE.WebGLRenderer({
-    antialias: true
-  });
-  renderer.setClearColor(0xfafaff);
-  //renderer.setClearColor(0x2cc8ff);
-  renderer.setSize(window.innerWidth, window.innerHeight);
-
-  container.appendChild(renderer.domElement);
-
-  // window.addEventListener('resize', onWindowResize, false);
-  binormal = new THREE.Vector3();
-  normal = new THREE.Vector3();
-
-  window.addEventListener('resize', onWindowResize, false);
-
-  window.onkeydown = function (e) {
-    if (e.which === 32) {
-      e.preventDefault();
-      switchCamera();
-    }
-    if (e.which === 83) {
-      e.preventDefault();
-      switchSpline();
-    }
-  }
-
-}
-
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-}
-
-function switchCamera() {
-  rollercoaster = !rollercoaster;
-}
-
-function switchSpline() {
-  parent.remove(tubeMesh);
-  tubeMesh = null;
-  splineIndex++;
-  if (splineIndex > splines.length - 1) splineIndex = 0;
-  tube = new THREE.TubeGeometry(splines[splineIndex], 100, 2, 4, true);
-  tubeMesh = new THREE.Mesh(tube, material);
-  tubeMesh.scale.set(scale, scale, scale);
-  parent.add(tubeMesh);
-}
-
-function render() {
-
-  var time = Date.now();
-  var loopTime = 20000;
-  var t = (time % loopTime) / loopTime;
-
-  var pos = tube.parameters.path.getPointAt(t);
-  pos.multiplyScalar(scale);
-
-  var segments = tube.tangents.length;
-  var pickt = t * segments;
-  var pick = Math.floor(pickt);
-  var pickNext = (pick + 1) % segments;
-
-  binormal.subVectors(tube.binormals[pickNext], tube.binormals[pick]);
-  binormal.multiplyScalar(pickt - pick).add(tube.binormals[pick]);
-
-  var dir = tube.parameters.path.getTangentAt(t);
-
-  var offset = 15;
-
-  normal.copy(binormal).cross(dir);
-
-  // We move on a offset on its binormal
-  pos.add(normal.clone().multiplyScalar(offset));
-
-  splineCamera.position.copy(pos);
-
-  var lookAt = tube.parameters.path.getPointAt((t + 30 / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
-
-  //this is called look ahead, not sure what it means
-  //lookAt.copy(pos).add(dir);
-  splineCamera.matrix.lookAt(splineCamera.position, lookAt, normal);
-  splineCamera.rotation.setFromRotationMatrix(splineCamera.matrix, splineCamera.rotation.order);
-
-  parent.rotation.y += (targetRotation - parent.rotation.y) * 0.05;
-  //parent.rotation.z = Math.sin(time * 0.001);
-  renderer.render(scene, rollercoaster ? splineCamera : camera);
-}
-
-function animate() {
-  requestAnimationFrame(animate);
-  render();
-}
-
-init();
-animate();
-},{"./CurveExtras.js":"/Users/karen/Documents/my_project/inception/js/CurveExtras.js","./splines.js":"/Users/karen/Documents/my_project/inception/js/splines.js"}],"/Users/karen/Documents/my_project/inception/js/incept.js":[function(require,module,exports){
-var graphic = require('./graphic.js');
-
-module.exports = function* (history) {
-  function zoomIn(value) {
-    //zoomIn another world
-    graphic.zoomIn(value);
-  }
-
-  function changeValue(value) {
-    graphic.changeValue(value);
-  }
-
-  function zoomOut() {
-    //get back to the outter world
-    //also change the value
-    graphic.zoomOut();
-  }
-
-  for (var i = 0; i < history.length; i++) {
-    if (typeof history[i].string === undefined) {
-      yield zoomIn(history[i].value);
-    } else {
-      yield changeValue(history[i].value);
-      yield zoomOut();
-    }
-  }
-}
-},{"./graphic.js":"/Users/karen/Documents/my_project/inception/js/graphic.js"}],"/Users/karen/Documents/my_project/inception/js/main.js":[function(require,module,exports){
-var parse = require('./parse.js');
-var incept = require('./incept.js');
-
-function fibonacci(num) {
-  if (num === 0) return 0;
-  if (num === 1) return 1;
-  return fibonacci(num - 1) + fibonacci(num - 2);
-}
-
-var call = 'fibonacci(6)';
-
-var test = fibonacci.toString().concat(call);
-var history = parse(test).history;
-
-incept(history);
-},{"./incept.js":"/Users/karen/Documents/my_project/inception/js/incept.js","./parse.js":"/Users/karen/Documents/my_project/inception/js/parse.js"}],"/Users/karen/Documents/my_project/inception/js/parse.js":[function(require,module,exports){
-var falafel = require('falafel');
-var inspect = require('object-inspect');
-
-module.exports = function (src) {
-
-  var id = 0;
-  var nodes = {};
-  var _obj = require('./dataStructure.js');
-
-  var out = falafel(src, function (node) {
-    if (node.type === 'FunctionDeclaration') {
-      _obj.functionName = node.id.name;
-      _obj.paramNumber = node.params.length;
-    }
-    if (node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression') {
-      console.log('!!! ' + node.source());
-      //node.body.update('{' + '_enter(' + id + ', arguments ,"' + node.source() + '");' + node.body.body
-      node.body.update('{' + '_enter(' + id + ',arguments);' + node.body.body
-        .map(function (x) {
-          return x.source()
-        })
-        .join(';\n')
-        // + '_exit(' + id + ',null,"' + node.source() + '");' + '}'
-        + '_exit(' + id + ');' + '}'
-      );
-      nodes[id] = node;
-      id++;
-    } else if (node.type === 'ReturnStatement') {
-      console.log('??? ' + node.source());
-      node.argument.update(
-        '_exit(' + id + ',' + node.argument.source() + ', "' + node.source() + '")'
-      );
-      nodes[id] = node;
-      id++;
-    }
-  }).toString();
-
-  // console.log(out);
-  // console.log(nodes);
-
-  var stack = [];
-  Function(['_exit', '_enter'], out)(exit, enter);
-
-  function exit(id, value, source) {
-    stack.pop();
-    var indent = Array(stack.length + 1).join(' ');
-    //console.log(indent + value);
-    _obj.history.push({
-      string: source,
-      value: indent + value
-    });
-    //console.log('weird!!!' + nodes[id].source());
-    return value;
-  }
-
-  function enter(id, args, source) {
-    var indent = Array(stack.length + 1).join(' ');
-    args = [].slice.call(args).map(inspect);
-    //console.log(indent + nodes[id].id.name + '(' + args.join(', ') + ')');
-
-    var str = indent + nodes[id].id.name + '(' + args.join(', ') + ')';
-    _obj.history.push({
-      string: source,
-      value: str
-    });
-    stack.push(id);
-    //console.log('weird???' + nodes[id].source());
-  }
-
-  console.log(_obj);
-  return _obj;
-
-}
-},{"./dataStructure.js":"/Users/karen/Documents/my_project/inception/js/dataStructure.js","falafel":"/Users/karen/Documents/my_project/inception/node_modules/falafel/index.js","object-inspect":"/Users/karen/Documents/my_project/inception/node_modules/object-inspect/index.js"}],"/Users/karen/Documents/my_project/inception/js/splines.js":[function(require,module,exports){
-module.exports =
-  [new THREE.Curves.GrannyKnot(),
-    new THREE.Curves.HeartCurve(3.5),
-    new THREE.Curves.VivianiCurve(70),
-    new THREE.Curves.KnotCurve(),
-    new THREE.Curves.HelixCurve(),
-    new THREE.Curves.TrefoilKnot(),
-    new THREE.Curves.TorusKnot(20),
-    new THREE.Curves.CinquefoilKnot(20),
-    new THREE.Curves.TrefoilPolynomialKnot(14),
-    new THREE.Curves.FigureEightPolynomialKnot(),
-    new THREE.Curves.DecoratedTorusKnot4a(),
-    new THREE.Curves.DecoratedTorusKnot4b(),
-    new THREE.Curves.DecoratedTorusKnot5a(),
-    new THREE.Curves.DecoratedTorusKnot5c(),
-    new THREE.SplineCurve3([
-      new THREE.Vector3(0, 10, -10), new THREE.Vector3(10, 0, -10), new THREE.Vector3(20, 0, 0), new THREE.Vector3(30, 0, 10), new THREE.Vector3(30, 0, 20), new THREE.Vector3(20, 0, 30), new THREE.Vector3(10, 0, 30), new THREE.Vector3(0, 0, 30), new THREE.Vector3(-10, 10, 30), new THREE.Vector3(-10, 20, 30), new THREE.Vector3(0, 30, 30), new THREE.Vector3(10, 30, 30), new THREE.Vector3(20, 30, 15), new THREE.Vector3(10, 30, 10), new THREE.Vector3(0, 30, 10), new THREE.Vector3(-10, 20, 10), new THREE.Vector3(-10, 10, 10), new THREE.Vector3(0, 0, 10), new THREE.Vector3(10, -10, 10), new THREE.Vector3(20, -15, 10), new THREE.Vector3(30, -15, 10), new THREE.Vector3(40, -15, 10), new THREE.Vector3(50, -15, 10), new THREE.Vector3(60, 0, 10), new THREE.Vector3(70, 0, 0), new THREE.Vector3(80, 0, 0), new THREE.Vector3(90, 0, 0), new THREE.Vector3(100, 0, 0)
-    ]),
-    new THREE.ClosedSplineCurve3([
-      new THREE.Vector3(0, -40, -40),
-      new THREE.Vector3(0, 40, -40),
-      new THREE.Vector3(0, 140, -40),
-      new THREE.Vector3(0, 40, 40),
-      new THREE.Vector3(0, -40, 40),
-    ])
-  ]
 },{}],"/Users/karen/Documents/my_project/inception/node_modules/falafel/index.js":[function(require,module,exports){
 var parse = require('acorn').parse;
 

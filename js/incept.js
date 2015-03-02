@@ -1,6 +1,17 @@
 var graphic = require('./graphic.js');
 
+//something i know from here:
+//1.how many layers are there
+//2.when to zoomIn
+//3.when to return value
+//4.when to zoomOut
+//so...maybe i could write instruction to build the world from here?
+
 module.exports = function* (history) {
+
+  //graphic.makeCubes(history.length);
+  console.log('hey')
+
   function zoomIn(value) {
     //zoomIn another world
     graphic.zoomIn(value);
