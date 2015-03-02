@@ -16,7 +16,7 @@ module.exports = {
 }
 
 require('./vendor/CurveExtras.js');
-require('./vendor/stats.js');
+//require('./vendor/stats.js');
 var createGate = require('./createGate.js');
 
 var camera, splineCamera, cameraHelper, cameraEye, binormal, normal, scene, scale,
@@ -109,7 +109,7 @@ function init() {
   //parent.add(mesh);
 
   planePP = createGate();
-  //scene.add(planePP);
+  scene.add(planePP);
 
   // window.addEventListener('resize', onWindowResize, false);
   binormal = new THREE.Vector3();
