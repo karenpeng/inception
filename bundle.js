@@ -65,6 +65,7 @@ var camera, scene, stats, splineCamera, cameraHelper, cameraEye, scale,
 var planePP;
 var visible = true;
 var magicNum = 1;
+var reverse = false;
 
 function init() {
 
@@ -90,7 +91,9 @@ function init() {
   //i still think that the camera should move freely
   //splineCamera.add(light6);
   //
-  forward = new THREE.Mesh(new THREE.SphereGeometry(4), material);
+  forward = new THREE.Mesh(new THREE.SphereGeometry(2), new THREE.MeshBasicMaterial({
+    color: 0xffffff
+  }));
   forward.position.copy(splineCamera.position);
   scene.add(forward);
 
@@ -189,6 +192,11 @@ function init() {
       e.preventDefault();
       visible = !visible;
     }
+    //c
+    if (e.which === 67) {
+      e.preventDefault();
+      reverse = !reverse;
+    }
   }
 
 }
@@ -280,7 +288,14 @@ function updateForward(time) {
 function updateCamera(time) {
   //console.log(time);
   var loopTime = 20000;
-  var t = (time % loopTime) / loopTime;
+  var t;
+
+  if (reverse) {
+    //t  = 1 - (time % loopTime) / loopTime;
+    t = ((loopTime - time) % loopTime) / loopTime;
+  } else {
+    t = (time % loopTime) / loopTime;
+  }
 
   var pos = tube.parameters.path.getPointAt(t);
   pos.multiplyScalar(scale);
