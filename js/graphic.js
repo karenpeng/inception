@@ -22,12 +22,13 @@ var createGate = require('./createGate.js');
 var camera, scene, stats, splineCamera, cameraHelper, cameraEye, scale,
   splines, tube, material, tubeMesh,
   binormal, normal, lookAt,
-  forward, backward,
+  forward,
   renderer, rollercoaster, splineIndex;
 var planePP;
 var visible = true;
 var magicNum = 1;
 var reverse = false;
+var cameraCounter = 0;
 
 function init() {
 
@@ -58,9 +59,6 @@ function init() {
   }));
   forward.position.copy(splineCamera.position);
   scene.add(forward);
-
-  backward = forward.clone();
-  scene.add(backward);
 
   cameraHelper = new THREE.CameraHelper(splineCamera);
   scene.add(cameraHelper);
@@ -202,14 +200,11 @@ function switchSpline() {
 }
 
 function render() {
-  var time = Date.now();
+  //var time = Date.now();
   //if (rollercoaster) {
-  updateCamera(time);
-  updateForward(time);
-  //TODO: right at that moment, start going backward
-  //how???
-  updateBackward(time);
-  //}
+  updateCamera();
+  updateForward();
+
   tubeMesh.visible = visible;
   stats.update();
   renderer.render(scene, rollercoaster ? splineCamera : camera);
@@ -217,24 +212,9 @@ function render() {
   //console.log(splineCamera.position);
 }
 
-function updateBackward(time) {
-  var loopTime = 20000;
-  var tBackward = 1 - (time % loopTime) / loopTime;
-  var pos = tube.parameters.path.getPointAt(tBackward);
-  pos.multiplyScalar(scale);
-
-  backward.position.copy(pos);
-
-  var lookBackward = tube.parameters.path.getPointAt((tBackward + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
-
-  backward.matrix.lookAt(backward.position, lookBackward, normal);
-  backward.rotation.setFromRotationMatrix(backward.matrix, backward.rotation.order);
-
-}
-
-function updateForward(time) {
-  var loopTime = 20000;
-  var tForward = ((time + 2000) % loopTime) / loopTime;
+function updateForward() {
+  var loopTime = 5000;
+  var tForward = ((cameraCounter + 100) % loopTime) / loopTime;
   var pos = tube.parameters.path.getPointAt(tForward);
   pos.multiplyScalar(scale);
 
@@ -247,19 +227,23 @@ function updateForward(time) {
 
 }
 
-function updateCamera(time) {
+function updateCamera() {
   //console.log(time);
-  var loopTime = 20000;
+  // var loopTime = 20000;
+  var loopTime = 5000;
   var t;
 
-  if (reverse) {
-    t = 1 - (time % loopTime) / loopTime;
+  if (!reverse) {
+    cameraCounter += 10;
+    // t = 1 - (time % loopTime) / loopTime;
     //t = ((loopTime - time) % loopTime) / loopTime;
-    //t += (sin(time)
   } else {
-    t = (time % loopTime) / loopTime;
+    cameraCounter -= 10;
+    // t = (time % loopTime) / loopTime;
   }
-
+  if (cameraCounter === 0) counter = loopTime;
+  //console.log(counter);
+  t = (cameraCounter % loopTime) / loopTime;
   var pos = tube.parameters.path.getPointAt(t);
   pos.multiplyScalar(scale);
 
