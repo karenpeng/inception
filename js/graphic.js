@@ -173,13 +173,19 @@ function init() {
     //d
     if (e.which === 68) {
       e.preventDefault();
-      exports.speed = 0;
       console.log('stop');
+      exports.speed = 0;
     }
     //e
     if (e.which === 69) {
       e.preventDefault();
       addText();
+    }
+    //f
+    if (e.which === 70) {
+      e.preventDefault();
+      console.log('stop');
+      exports.speed = 0;
     }
   }
 
