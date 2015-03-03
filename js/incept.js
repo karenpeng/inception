@@ -10,21 +10,23 @@ var graphic = require('./graphic.js');
 module.exports = function* (history) {
 
   //graphic.makeCubes(history.length);
-  console.log('hey')
+  //console.log('hey')
 
   function zoomIn(value) {
     //zoomIn another world
-    graphic.zoomIn(value);
+    //graphic.zoomIn(value);
+    graphic.speed = 1;
   }
 
   function changeValue(value) {
+    graphic.speed = 0;
     graphic.changeValue(value);
   }
 
   function zoomOut() {
     //get back to the outter world
     //also change the value
-    graphic.zoomOut();
+    graphic.speed = -1;
   }
 
   for (var i = 0; i < history.length; i++) {

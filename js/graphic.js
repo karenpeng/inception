@@ -23,15 +23,17 @@ var createText = require('./createText.js');
 var camera, scene, stats, splineCamera, cameraHelper, cameraEye, scale,
   splines, tube, material, tubeMesh,
   binormal, normal, lookForward,
-  forward,
+  forward, raycaster,
   renderer, rollercoaster, splineIndex;
 var planePP;
 var visible = true;
 var magicNum = 1;
-var speed = 1;
-var speedRecord = speed;
+exports.speed = 1;
+var speedRecord = exports.speed;
 var cameraCounter = 0;
 var loopTime = 10000;
+var texts = [];
+var dir;
 
 function init() {
 
@@ -39,6 +41,7 @@ function init() {
   splineIndex = 3;
   targetRotation = 0;
   scale = 1;
+  raycaster = new THREE.Raycaster();
   var container = document.createElement('div');
   // container.style.position = 'absolute';
   // container.style.left = '440px';
@@ -107,8 +110,8 @@ function init() {
   tubeMesh.scale.set(scale, scale, scale);
   scene.add(tubeMesh);
 
-  var bgTube = new THREE.TubeGeometry(splines[4], 100, 2, 4, true);
-  var mesh = new THREE.Mesh(bgTube, material);
+  // var bgTube = new THREE.TubeGeometry(splines[4], 100, 2, 4, true);
+  // var mesh = new THREE.Mesh(bgTube, material);
   //parent.add(mesh);
 
   planePP = createGate();
@@ -163,10 +166,9 @@ function init() {
     if (e.which === 67) {
       e.preventDefault();
       //reverse = !reverse;
-      if (speed === 1) speed = -1;
-      else if (speed === -1) speed = 1;
-      else if (speed === 0) speed = speedRecord;
-      console.log(speed)
+      if (exports.speed === 1) exports.speed = -1;
+      else if (exports.speed === -1) exports.speed = 1;
+      else if (exports.speed === 0) exports.speed = speedRecord;
     }
     //d
     if (e.which === 68) {
@@ -198,33 +200,26 @@ function addText() {
   text.position.copy(forward.position);
   text.matrix.lookAt(text.position, lookForward, normal);
   text.rotation.setFromRotationMatrix(text.matrix, text.rotation.order);
+  texts.push(text);
   scene.add(text);
 }
 
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+function destoryText() {
+  scene.remove(texts[texts.length - 1]);
+  texts[texts.length - 1].children.forEach(function (item) {
+    item.dispose();
+  })
+  texts[texts.length - 1] = null;
 }
 
-function switchCamera() {
-  rollercoaster = !rollercoaster;
-}
-
-function switchSpline() {
-  scene.remove(tubeMesh);
-  //TODO: find out how to dispose geometry and material
-  tubeMesh.children.forEach(function (item) {
-      item.dispose();
-    })
-    //tubeMesh.dispose();
-  tubeMesh = null;
-  splineIndex++;
-  if (splineIndex > splines.length - 1) splineIndex = 0;
-  tube = new THREE.TubeGeometry(splines[splineIndex], 100, 2, 4, true);
-  tubeMesh = new THREE.Mesh(tube, material);
-  tubeMesh.scale.set(scale, scale, scale);
-  scene.add(tubeMesh);
+function isHit(obj) {
+  var ray = dir;
+  raycaster.ray.set(splineCamera, ray);
+  var intersects = raycaster.intersectObjects(obj);
+  if (intersects.length > 0 && intersects[0].distance <= 10) {
+    return intersects[0].object.name;
+  }
+  return null;
 }
 
 function render() {
@@ -256,12 +251,12 @@ function updateForward() {
 }
 
 function updateCamera() {
-  if (speed === 1) {
+  if (exports.speed === 1) {
     cameraCounter += 10;
-    speedRecord = speed;
-  } else if (speed === -1) {
+    speedRecord = exports.speed;
+  } else if (exports.speed === -1) {
     cameraCounter -= 10;
-    speedRecord = speed;
+    speedRecord = exports.speed;
   }
 
   if (cameraCounter <= 0) {
@@ -280,6 +275,7 @@ function updateCamera() {
   // binormal.multiplyScalar(pickt - pick).add(tube.binormals[pick]);
 
   //var dir = tube.parameters.path.getTangentAt(t);
+  dir = tube.parameters.path.getTangent(t);
 
   //var offset = 15;
 
@@ -310,3 +306,31 @@ function animate() {
 
 init();
 animate();
+
+function switchCamera() {
+  rollercoaster = !rollercoaster;
+}
+
+function switchSpline() {
+  scene.remove(tubeMesh);
+  //TODO: find out how to dispose geometry and material
+  tubeMesh.children.forEach(function (item) {
+      item.dispose();
+    })
+    //tubeMesh.dispose();
+  tubeMesh = null;
+  splineIndex++;
+  if (splineIndex > splines.length - 1) splineIndex = 0;
+  tube = new THREE.TubeGeometry(splines[splineIndex], 100, 2, 4, true);
+  tubeMesh = new THREE.Mesh(tube, material);
+  tubeMesh.scale.set(scale, scale, scale);
+  scene.add(tubeMesh);
+}
+
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  splineCamera.aspect = window.innerWidth / window.innerHeight;
+  splineCamera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
