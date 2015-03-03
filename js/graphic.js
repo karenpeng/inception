@@ -1,20 +1,3 @@
-module.exports = {
-  zoomIn: function (value) {
-    //camera.lookAt(new THREE.Vector3());
-    setTimeout(function () {
-      //move the camera
-    }, 1000);
-  },
-
-  changeValue: function (value) {
-
-  },
-
-  zoomOut: function () {
-
-  }
-}
-
 require('./vendor/CurveExtras.js');
 //require('./vendor/stats.js');
 var createGate = require('./createGate.js');
@@ -173,7 +156,7 @@ function init() {
     //d
     if (e.which === 68) {
       e.preventDefault();
-      speed = 0;
+      exports.speed = 0;
     }
     //e
     if (e.which === 69) {
@@ -187,22 +170,28 @@ function init() {
 //module.exports = {
 //  addGate: function () {
 function addGate() {
-    var gate = createGate();
-    //gate.lookAt(splineCamera.position);
-    gate.position.copy(forward.position);
-    gate.matrix.lookAt(gate.position, lookForward, normal);
-    gate.rotation.setFromRotationMatrix(gate.matrix, gate.rotation.order);
-    scene.add(gate);
-  }
-  //}
-function addText() {
-  var text = createText('fibonacci(3)');
+  var gate = createGate();
+  //gate.lookAt(splineCamera.position);
+  gate.position.copy(forward.position);
+  gate.matrix.lookAt(gate.position, lookForward, new THREE.Vector3(0, 0, 0));
+  gate.rotation.setFromRotationMatrix(gate.matrix, gate.rotation.order);
+  scene.add(gate);
+}
+exports.addGate = addGate;
+//}
+function addText(_text, _tag) {
+  var text = createText(_text, _tag);
   text.position.copy(forward.position);
-  text.matrix.lookAt(text.position, lookForward, normal);
+  text.matrix.lookAt(text.position, lookForward, new THREE.Vector3(0, 0, 0));
   text.rotation.setFromRotationMatrix(text.matrix, text.rotation.order);
   texts.push(text);
   scene.add(text);
 }
+exports.forward = forward;
+exports.lookForward = lookForward;
+exports.texts = texts;
+exports.scene = scene;
+exports.addText = addText;
 
 function destoryText() {
   scene.remove(texts[texts.length - 1]);
@@ -211,6 +200,12 @@ function destoryText() {
   })
   texts[texts.length - 1] = null;
 }
+
+function changeText(_text, _tag) {
+  destoryText();
+  addText(_text, _tag);
+}
+exports.changeText = changeText;
 
 function isHit(obj) {
   var ray = dir;

@@ -9,15 +9,19 @@ function fibonacci(num) {
   return fibonacci(num - 1) + fibonacci(num - 2);
 }
 
-var call = 'fibonacci(2)';
+var call = 'fibonacci(3)';
 
 var test = fibonacci.toString().concat(call);
 var history = parse(test).history;
 
 //console.log(history)
 
-// var iterator = incept(history);
-// iterator.next();
 history.forEach(function (item) {
   console.log(item)
 })
+
+var iterator = incept(history);
+setInterval(function () {
+  var it = iterator.next();
+  if (it.done) return;
+}, 1000);

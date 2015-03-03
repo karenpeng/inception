@@ -12,15 +12,23 @@ module.exports = function* (history) {
   //graphic.makeCubes(history.length);
   //console.log('hey')
 
-  function zoomIn(value) {
+  function zoomIn(history) {
     //zoomIn another world
     //graphic.zoomIn(value);
+    console.log(Object.keys(graphic))
     graphic.speed = 1;
+    graphic.addText(history.value, history.string);
+    setInterval(function () {
+      //graphic.addGate();
+    }, 600);
   }
 
-  function changeValue(value) {
+  function changeValue(history, callback) {
     graphic.speed = 0;
-    graphic.changeValue(value);
+    graphic.changeText(history.value, history.string);
+    setTimeout(function () {
+      callback();
+    }, 2000);
   }
 
   function zoomOut() {
@@ -29,12 +37,12 @@ module.exports = function* (history) {
     graphic.speed = -1;
   }
 
-  for (var i = 0; i < history.length; i++) {
-    if (typeof history[i].string === undefined) {
-      yield zoomIn(history[i].value);
+  for (var i = 1; i < history.length; i++) {
+    if (history[i].string === undefined) {
+      yield zoomIn(history[i]);
     } else {
-      yield changeValue(history[i].value);
-      yield zoomOut();
+      yield changeValue(history[i], zoomOut);
+      //yield zoomOut();
     }
   }
 }

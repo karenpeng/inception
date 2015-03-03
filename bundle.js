@@ -165,23 +165,6 @@ module.exports = {
   }
 }
 },{}],"/Users/karen/Documents/my_project/inception/js/graphic.js":[function(require,module,exports){
-module.exports = {
-  zoomIn: function (value) {
-    //camera.lookAt(new THREE.Vector3());
-    setTimeout(function () {
-      //move the camera
-    }, 1000);
-  },
-
-  changeValue: function (value) {
-
-  },
-
-  zoomOut: function () {
-
-  }
-}
-
 require('./vendor/CurveExtras.js');
 //require('./vendor/stats.js');
 var createGate = require('./createGate.js');
@@ -340,7 +323,7 @@ function init() {
     //d
     if (e.which === 68) {
       e.preventDefault();
-      speed = 0;
+      exports.speed = 0;
     }
     //e
     if (e.which === 69) {
@@ -354,22 +337,28 @@ function init() {
 //module.exports = {
 //  addGate: function () {
 function addGate() {
-    var gate = createGate();
-    //gate.lookAt(splineCamera.position);
-    gate.position.copy(forward.position);
-    gate.matrix.lookAt(gate.position, lookForward, normal);
-    gate.rotation.setFromRotationMatrix(gate.matrix, gate.rotation.order);
-    scene.add(gate);
-  }
-  //}
-function addText() {
-  var text = createText('fibonacci(3)');
+  var gate = createGate();
+  //gate.lookAt(splineCamera.position);
+  gate.position.copy(forward.position);
+  gate.matrix.lookAt(gate.position, lookForward, new THREE.Vector3(0, 0, 0));
+  gate.rotation.setFromRotationMatrix(gate.matrix, gate.rotation.order);
+  scene.add(gate);
+}
+exports.addGate = addGate;
+//}
+function addText(_text, _tag) {
+  var text = createText(_text, _tag);
   text.position.copy(forward.position);
-  text.matrix.lookAt(text.position, lookForward, normal);
+  text.matrix.lookAt(text.position, lookForward, new THREE.Vector3(0, 0, 0));
   text.rotation.setFromRotationMatrix(text.matrix, text.rotation.order);
   texts.push(text);
   scene.add(text);
 }
+exports.forward = forward;
+exports.lookForward = lookForward;
+exports.texts = texts;
+exports.scene = scene;
+exports.addText = addText;
 
 function destoryText() {
   scene.remove(texts[texts.length - 1]);
@@ -378,6 +367,12 @@ function destoryText() {
   })
   texts[texts.length - 1] = null;
 }
+
+function changeText(_text, _tag) {
+  destoryText();
+  addText(_text, _tag);
+}
+exports.changeText = changeText;
 
 function isHit(obj) {
   var ray = dir;
@@ -516,15 +511,23 @@ module.exports = function* (history) {
   //graphic.makeCubes(history.length);
   //console.log('hey')
 
-  function zoomIn(value) {
+  function zoomIn(history) {
     //zoomIn another world
     //graphic.zoomIn(value);
+    console.log(Object.keys(graphic))
     graphic.speed = 1;
+    graphic.addText(history.value, history.string);
+    setInterval(function () {
+      //graphic.addGate();
+    }, 600);
   }
 
-  function changeValue(value) {
+  function changeValue(history, callback) {
     graphic.speed = 0;
-    graphic.changeValue(value);
+    graphic.changeText(history.value, history.string);
+    setTimeout(function () {
+      callback();
+    }, 2000);
   }
 
   function zoomOut() {
@@ -533,12 +536,12 @@ module.exports = function* (history) {
     graphic.speed = -1;
   }
 
-  for (var i = 0; i < history.length; i++) {
-    if (typeof history[i].string === undefined) {
-      yield zoomIn(history[i].value);
+  for (var i = 1; i < history.length; i++) {
+    if (history[i].string === undefined) {
+      yield zoomIn(history[i]);
     } else {
-      yield changeValue(history[i].value);
-      yield zoomOut();
+      yield changeValue(history[i], zoomOut);
+      //yield zoomOut();
     }
   }
 }
@@ -554,18 +557,22 @@ function fibonacci(num) {
   return fibonacci(num - 1) + fibonacci(num - 2);
 }
 
-var call = 'fibonacci(2)';
+var call = 'fibonacci(3)';
 
 var test = fibonacci.toString().concat(call);
 var history = parse(test).history;
 
 //console.log(history)
 
-// var iterator = incept(history);
-// iterator.next();
 history.forEach(function (item) {
   console.log(item)
 })
+
+var iterator = incept(history);
+setInterval(function () {
+  var it = iterator.next();
+  if (it.done) return;
+}, 1000);
 },{"./editor.js":"/Users/karen/Documents/my_project/inception/js/editor.js","./incept.js":"/Users/karen/Documents/my_project/inception/js/incept.js","./parse.js":"/Users/karen/Documents/my_project/inception/js/parse.js"}],"/Users/karen/Documents/my_project/inception/js/parse.js":[function(require,module,exports){
 var falafel = require('falafel');
 var inspect = require('object-inspect');
