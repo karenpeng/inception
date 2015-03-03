@@ -9,7 +9,7 @@ var camera, scene, stats, splineCamera, cameraHelper, cameraEye, scale,
   forward, raycaster,
   renderer, rollercoaster, splineIndex;
 var planePP;
-var visible = true;
+var visible = false;
 var magicNum = 1;
 exports.speed = 1;
 var speedRecord = exports.speed;
@@ -207,22 +207,61 @@ function changeText(_text, _tag) {
 }
 exports.changeText = changeText;
 
-function isHit(obj) {
+// function isHit(obj) {
+//   var ray = dir;
+//   raycaster.ray.set(splineCamera, ray);
+//   var intersects = raycaster.intersectObjects(obj);
+//   if (intersects.length > 0 && intersects[0].distance <= 10) {
+//     return intersects[0].object.name;
+//   }
+//   return null;
+// }
+//
+function isHit() {
   var ray = dir;
-  raycaster.ray.set(splineCamera, ray);
-  var intersects = raycaster.intersectObjects(obj);
+  //console.log(texts[texts.length - 1] instanceof THREE.Mesh)
+  var obj = [texts[texts.length - 1], texts[texts.length - 1]];
+  raycaster.ray.set(splineCamera.position, ray);
+  var intersects = raycaster.intersectObjects(obj, true);
+  console.log
   if (intersects.length > 0 && intersects[0].distance <= 10) {
     return intersects[0].object.name;
   }
   return null;
 }
 
+var EventEmitter = require('events').EventEmitter;
+var inherits = require('inherits');
+//module.exports = Widget;
+inherits(Widget, EventEmitter);
+
+function Widget() {
+  // if(isHit()!== null){
+  //   this.emit('hit');
+  // }
+  this.alarm = false;
+  if (!(this instanceof Widget)) return new Widget();
+}
+
+Widget.prototype.detect = function () {
+  if (isHit() !== null && !this.alarm) {
+    this.alarm = true;
+    console.log('ouch!')
+    this.emit('hit');
+  }
+};
+
+var w = Widget();
+exports.w = w;
+
 function render() {
   //var time = Date.now();
   //if (rollercoaster) {
   updateCamera();
   updateForward();
-
+  if (texts.length > 0) {
+    w.detect();
+  }
   tubeMesh.visible = visible;
   forward.visible = visible;
   stats.update();

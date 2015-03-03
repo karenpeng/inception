@@ -1,7 +1,7 @@
 var parse = require('./parse.js');
-var incept = require('./incept.js');
+//var incept = require('./incept.js');
 
-require('./editor.js').init();
+//require('./editor.js').init();
 
 function fibonacci(num) {
   if (num === 0) return 0;
@@ -16,12 +16,21 @@ var history = parse(test).history;
 
 //console.log(history)
 
-history.forEach(function (item) {
-  console.log(item)
-})
+// history.forEach(function (item) {
+//   console.log(item)
+// })
 
-var iterator = incept(history);
+var control = require('./es5.js');
+var func = control(history);
+
+// var iterator = incept(history);
+// //setInterval(function () {
+// function callNext() {
+//     var it = iterator.next();
+//     if (it.done) return;
+//   }
+//   //}, 1000);
+// exports.callNext = callNext();
 setInterval(function () {
-  var it = iterator.next();
-  if (it.done) return;
+  func();
 }, 1000);

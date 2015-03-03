@@ -129,42 +129,55 @@ module.exports = {
   paramNumber: 0,
   history: []
 }
-},{}],"/Users/karen/Documents/my_project/inception/js/editor.js":[function(require,module,exports){
-module.exports = {
+},{}],"/Users/karen/Documents/my_project/inception/js/es5.js":[function(require,module,exports){
+var graphic = require('./graphic.js');
+//var w = graphic.Widget();
 
-  init: function () {
-    var editor1 = ace.edit("editor1");
-    editor1.setTheme("ace/theme/monokai");
-    editor1.getSession().setMode("ace/mode/javascript");
-
-    var editor2 = ace.edit("editor2");
-    editor2.setTheme("ace/theme/monokai");
-    editor2.getSession().setMode("ace/mode/javascript");
-  },
-
-  getValue: function (name) {
-    switch (name) {
-    case '1':
-      return editor1.getValue();
-    case '2':
-      return editor2.getValue();
+module.exports = function (history) {
+  var index = 1;
+  var history = history;
+  return function () {
+    if (history[index].string === undefined) {
+      zoomIn(history[index]);
+      index++;
+      graphic.w.alarm = false;
+    } else {
+      //wait until hits it
+      graphic.w.on('hit', function () {
+        changeValue(history[index]);
+        index++;
+      });
     }
-  },
-
-  getLineNum: function (string) {
-    var lines = editor1.session.getAllLines();
-    var stringNum = [];
-    for (var i = 0; i < lines.length; i++) {
-      if (lines[i].indexOf(string) !== -1) stringNum.push(i);
-    }
-    return stringNum;
-  },
-
-  addMarker: function () {
-
   }
+
+  function zoomIn(history) {
+    //zoomIn another world
+    //graphic.zoomIn(value);
+    console.log('wat ' + Object.keys(graphic))
+    graphic.speed = 1;
+    graphic.addText(history.value, history.string);
+    setInterval(function () {
+      //graphic.addGate();
+    }, 600);
+  }
+
+  function changeValue(history, callback) {
+    graphic.speed = 0;
+    graphic.changeText(history.value, history.string);
+    // setTimeout(function () {
+    //   callback();
+    // }, 2000);
+    zoomOut();
+  }
+
+  function zoomOut() {
+    //get back to the outter world
+    //also change the value
+    graphic.speed = -1;
+  }
+
 }
-},{}],"/Users/karen/Documents/my_project/inception/js/graphic.js":[function(require,module,exports){
+},{"./graphic.js":"/Users/karen/Documents/my_project/inception/js/graphic.js"}],"/Users/karen/Documents/my_project/inception/js/graphic.js":[function(require,module,exports){
 require('./vendor/CurveExtras.js');
 //require('./vendor/stats.js');
 var createGate = require('./createGate.js');
@@ -176,7 +189,7 @@ var camera, scene, stats, splineCamera, cameraHelper, cameraEye, scale,
   forward, raycaster,
   renderer, rollercoaster, splineIndex;
 var planePP;
-var visible = true;
+var visible = false;
 var magicNum = 1;
 exports.speed = 1;
 var speedRecord = exports.speed;
@@ -374,22 +387,61 @@ function changeText(_text, _tag) {
 }
 exports.changeText = changeText;
 
-function isHit(obj) {
+// function isHit(obj) {
+//   var ray = dir;
+//   raycaster.ray.set(splineCamera, ray);
+//   var intersects = raycaster.intersectObjects(obj);
+//   if (intersects.length > 0 && intersects[0].distance <= 10) {
+//     return intersects[0].object.name;
+//   }
+//   return null;
+// }
+//
+function isHit() {
   var ray = dir;
-  raycaster.ray.set(splineCamera, ray);
-  var intersects = raycaster.intersectObjects(obj);
+  //console.log(texts[texts.length - 1] instanceof THREE.Mesh)
+  var obj = [texts[texts.length - 1], texts[texts.length - 1]];
+  raycaster.ray.set(splineCamera.position, ray);
+  var intersects = raycaster.intersectObjects(obj, true);
+  console.log
   if (intersects.length > 0 && intersects[0].distance <= 10) {
     return intersects[0].object.name;
   }
   return null;
 }
 
+var EventEmitter = require('events').EventEmitter;
+var inherits = require('inherits');
+//module.exports = Widget;
+inherits(Widget, EventEmitter);
+
+function Widget() {
+  // if(isHit()!== null){
+  //   this.emit('hit');
+  // }
+  this.alarm = false;
+  if (!(this instanceof Widget)) return new Widget();
+}
+
+Widget.prototype.detect = function () {
+  if (isHit() !== null && !this.alarm) {
+    this.alarm = true;
+    console.log('ouch!')
+    this.emit('hit');
+  }
+};
+
+var w = Widget();
+exports.w = w;
+
 function render() {
   //var time = Date.now();
   //if (rollercoaster) {
   updateCamera();
   updateForward();
-
+  if (texts.length > 0) {
+    w.detect();
+  }
   tubeMesh.visible = visible;
   forward.visible = visible;
   stats.update();
@@ -496,60 +548,11 @@ function onWindowResize() {
   splineCamera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
-},{"./createGate.js":"/Users/karen/Documents/my_project/inception/js/createGate.js","./createText.js":"/Users/karen/Documents/my_project/inception/js/createText.js","./splines.js":"/Users/karen/Documents/my_project/inception/js/splines.js","./vendor/CurveExtras.js":"/Users/karen/Documents/my_project/inception/js/vendor/CurveExtras.js"}],"/Users/karen/Documents/my_project/inception/js/incept.js":[function(require,module,exports){
-var graphic = require('./graphic.js');
-
-//something i know from here:
-//1.how many layers are there
-//2.when to zoomIn
-//3.when to return value
-//4.when to zoomOut
-//so...maybe i could write instruction to build the world from here?
-
-module.exports = function* (history) {
-
-  //graphic.makeCubes(history.length);
-  //console.log('hey')
-
-  function zoomIn(history) {
-    //zoomIn another world
-    //graphic.zoomIn(value);
-    console.log(Object.keys(graphic))
-    graphic.speed = 1;
-    graphic.addText(history.value, history.string);
-    setInterval(function () {
-      //graphic.addGate();
-    }, 600);
-  }
-
-  function changeValue(history, callback) {
-    graphic.speed = 0;
-    graphic.changeText(history.value, history.string);
-    setTimeout(function () {
-      callback();
-    }, 2000);
-  }
-
-  function zoomOut() {
-    //get back to the outter world
-    //also change the value
-    graphic.speed = -1;
-  }
-
-  for (var i = 1; i < history.length; i++) {
-    if (history[i].string === undefined) {
-      yield zoomIn(history[i]);
-    } else {
-      yield changeValue(history[i], zoomOut);
-      //yield zoomOut();
-    }
-  }
-}
-},{"./graphic.js":"/Users/karen/Documents/my_project/inception/js/graphic.js"}],"/Users/karen/Documents/my_project/inception/js/main.js":[function(require,module,exports){
+},{"./createGate.js":"/Users/karen/Documents/my_project/inception/js/createGate.js","./createText.js":"/Users/karen/Documents/my_project/inception/js/createText.js","./splines.js":"/Users/karen/Documents/my_project/inception/js/splines.js","./vendor/CurveExtras.js":"/Users/karen/Documents/my_project/inception/js/vendor/CurveExtras.js","events":"/usr/local/lib/node_modules/watchify/node_modules/browserify/node_modules/events/events.js","inherits":"/Users/karen/Documents/my_project/inception/node_modules/inherits/inherits_browser.js"}],"/Users/karen/Documents/my_project/inception/js/main.js":[function(require,module,exports){
 var parse = require('./parse.js');
-var incept = require('./incept.js');
+//var incept = require('./incept.js');
 
-require('./editor.js').init();
+//require('./editor.js').init();
 
 function fibonacci(num) {
   if (num === 0) return 0;
@@ -564,16 +567,25 @@ var history = parse(test).history;
 
 //console.log(history)
 
-history.forEach(function (item) {
-  console.log(item)
-})
+// history.forEach(function (item) {
+//   console.log(item)
+// })
 
-var iterator = incept(history);
+var control = require('./es5.js');
+var func = control(history);
+
+// var iterator = incept(history);
+// //setInterval(function () {
+// function callNext() {
+//     var it = iterator.next();
+//     if (it.done) return;
+//   }
+//   //}, 1000);
+// exports.callNext = callNext();
 setInterval(function () {
-  var it = iterator.next();
-  if (it.done) return;
+  func();
 }, 1000);
-},{"./editor.js":"/Users/karen/Documents/my_project/inception/js/editor.js","./incept.js":"/Users/karen/Documents/my_project/inception/js/incept.js","./parse.js":"/Users/karen/Documents/my_project/inception/js/parse.js"}],"/Users/karen/Documents/my_project/inception/js/parse.js":[function(require,module,exports){
+},{"./es5.js":"/Users/karen/Documents/my_project/inception/js/es5.js","./parse.js":"/Users/karen/Documents/my_project/inception/js/parse.js"}],"/Users/karen/Documents/my_project/inception/js/parse.js":[function(require,module,exports){
 var falafel = require('falafel');
 var inspect = require('object-inspect');
 
@@ -3744,6 +3756,31 @@ function insertHelpers (node, parent, chunks) {
 
 });
 
+},{}],"/Users/karen/Documents/my_project/inception/node_modules/inherits/inherits_browser.js":[function(require,module,exports){
+if (typeof Object.create === 'function') {
+  // implementation from standard node.js 'util' module
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    ctor.prototype = Object.create(superCtor.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+} else {
+  // old school shim for old browsers
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    var TempCtor = function () {}
+    TempCtor.prototype = superCtor.prototype
+    ctor.prototype = new TempCtor()
+    ctor.prototype.constructor = ctor
+  }
+}
+
 },{}],"/Users/karen/Documents/my_project/inception/node_modules/object-inspect/index.js":[function(require,module,exports){
 module.exports = function inspect_ (obj, opts, depth, seen) {
     if (!opts) opts = {};
@@ -3886,6 +3923,311 @@ function inspectString (str) {
         if (x) return '\\' + x;
         return '\\x' + (n < 0x10 ? '0' : '') + n.toString(16);
     }
+}
+
+},{}],"/usr/local/lib/node_modules/watchify/node_modules/browserify/node_modules/events/events.js":[function(require,module,exports){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+function EventEmitter() {
+  this._events = this._events || {};
+  this._maxListeners = this._maxListeners || undefined;
+}
+module.exports = EventEmitter;
+
+// Backwards-compat with node 0.10.x
+EventEmitter.EventEmitter = EventEmitter;
+
+EventEmitter.prototype._events = undefined;
+EventEmitter.prototype._maxListeners = undefined;
+
+// By default EventEmitters will print a warning if more than 10 listeners are
+// added to it. This is a useful default which helps finding memory leaks.
+EventEmitter.defaultMaxListeners = 10;
+
+// Obviously not all Emitters should be limited to 10. This function allows
+// that to be increased. Set to zero for unlimited.
+EventEmitter.prototype.setMaxListeners = function(n) {
+  if (!isNumber(n) || n < 0 || isNaN(n))
+    throw TypeError('n must be a positive number');
+  this._maxListeners = n;
+  return this;
+};
+
+EventEmitter.prototype.emit = function(type) {
+  var er, handler, len, args, i, listeners;
+
+  if (!this._events)
+    this._events = {};
+
+  // If there is no 'error' event listener then throw.
+  if (type === 'error') {
+    if (!this._events.error ||
+        (isObject(this._events.error) && !this._events.error.length)) {
+      er = arguments[1];
+      if (er instanceof Error) {
+        throw er; // Unhandled 'error' event
+      } else {
+        throw TypeError('Uncaught, unspecified "error" event.');
+      }
+      return false;
+    }
+  }
+
+  handler = this._events[type];
+
+  if (isUndefined(handler))
+    return false;
+
+  if (isFunction(handler)) {
+    switch (arguments.length) {
+      // fast cases
+      case 1:
+        handler.call(this);
+        break;
+      case 2:
+        handler.call(this, arguments[1]);
+        break;
+      case 3:
+        handler.call(this, arguments[1], arguments[2]);
+        break;
+      // slower
+      default:
+        len = arguments.length;
+        args = new Array(len - 1);
+        for (i = 1; i < len; i++)
+          args[i - 1] = arguments[i];
+        handler.apply(this, args);
+    }
+  } else if (isObject(handler)) {
+    len = arguments.length;
+    args = new Array(len - 1);
+    for (i = 1; i < len; i++)
+      args[i - 1] = arguments[i];
+
+    listeners = handler.slice();
+    len = listeners.length;
+    for (i = 0; i < len; i++)
+      listeners[i].apply(this, args);
+  }
+
+  return true;
+};
+
+EventEmitter.prototype.addListener = function(type, listener) {
+  var m;
+
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  if (!this._events)
+    this._events = {};
+
+  // To avoid recursion in the case that type === "newListener"! Before
+  // adding it to the listeners, first emit "newListener".
+  if (this._events.newListener)
+    this.emit('newListener', type,
+              isFunction(listener.listener) ?
+              listener.listener : listener);
+
+  if (!this._events[type])
+    // Optimize the case of one listener. Don't need the extra array object.
+    this._events[type] = listener;
+  else if (isObject(this._events[type]))
+    // If we've already got an array, just append.
+    this._events[type].push(listener);
+  else
+    // Adding the second element, need to change to array.
+    this._events[type] = [this._events[type], listener];
+
+  // Check for listener leak
+  if (isObject(this._events[type]) && !this._events[type].warned) {
+    var m;
+    if (!isUndefined(this._maxListeners)) {
+      m = this._maxListeners;
+    } else {
+      m = EventEmitter.defaultMaxListeners;
+    }
+
+    if (m && m > 0 && this._events[type].length > m) {
+      this._events[type].warned = true;
+      console.error('(node) warning: possible EventEmitter memory ' +
+                    'leak detected. %d listeners added. ' +
+                    'Use emitter.setMaxListeners() to increase limit.',
+                    this._events[type].length);
+      if (typeof console.trace === 'function') {
+        // not supported in IE 10
+        console.trace();
+      }
+    }
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+EventEmitter.prototype.once = function(type, listener) {
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  var fired = false;
+
+  function g() {
+    this.removeListener(type, g);
+
+    if (!fired) {
+      fired = true;
+      listener.apply(this, arguments);
+    }
+  }
+
+  g.listener = listener;
+  this.on(type, g);
+
+  return this;
+};
+
+// emits a 'removeListener' event iff the listener was removed
+EventEmitter.prototype.removeListener = function(type, listener) {
+  var list, position, length, i;
+
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  if (!this._events || !this._events[type])
+    return this;
+
+  list = this._events[type];
+  length = list.length;
+  position = -1;
+
+  if (list === listener ||
+      (isFunction(list.listener) && list.listener === listener)) {
+    delete this._events[type];
+    if (this._events.removeListener)
+      this.emit('removeListener', type, listener);
+
+  } else if (isObject(list)) {
+    for (i = length; i-- > 0;) {
+      if (list[i] === listener ||
+          (list[i].listener && list[i].listener === listener)) {
+        position = i;
+        break;
+      }
+    }
+
+    if (position < 0)
+      return this;
+
+    if (list.length === 1) {
+      list.length = 0;
+      delete this._events[type];
+    } else {
+      list.splice(position, 1);
+    }
+
+    if (this._events.removeListener)
+      this.emit('removeListener', type, listener);
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.removeAllListeners = function(type) {
+  var key, listeners;
+
+  if (!this._events)
+    return this;
+
+  // not listening for removeListener, no need to emit
+  if (!this._events.removeListener) {
+    if (arguments.length === 0)
+      this._events = {};
+    else if (this._events[type])
+      delete this._events[type];
+    return this;
+  }
+
+  // emit removeListener for all listeners on all events
+  if (arguments.length === 0) {
+    for (key in this._events) {
+      if (key === 'removeListener') continue;
+      this.removeAllListeners(key);
+    }
+    this.removeAllListeners('removeListener');
+    this._events = {};
+    return this;
+  }
+
+  listeners = this._events[type];
+
+  if (isFunction(listeners)) {
+    this.removeListener(type, listeners);
+  } else {
+    // LIFO order
+    while (listeners.length)
+      this.removeListener(type, listeners[listeners.length - 1]);
+  }
+  delete this._events[type];
+
+  return this;
+};
+
+EventEmitter.prototype.listeners = function(type) {
+  var ret;
+  if (!this._events || !this._events[type])
+    ret = [];
+  else if (isFunction(this._events[type]))
+    ret = [this._events[type]];
+  else
+    ret = this._events[type].slice();
+  return ret;
+};
+
+EventEmitter.listenerCount = function(emitter, type) {
+  var ret;
+  if (!emitter._events || !emitter._events[type])
+    ret = 0;
+  else if (isFunction(emitter._events[type]))
+    ret = 1;
+  else
+    ret = emitter._events[type].length;
+  return ret;
+};
+
+function isFunction(arg) {
+  return typeof arg === 'function';
+}
+
+function isNumber(arg) {
+  return typeof arg === 'number';
+}
+
+function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+}
+
+function isUndefined(arg) {
+  return arg === void 0;
 }
 
 },{}]},{},["/Users/karen/Documents/my_project/inception/js/main.js"]);
