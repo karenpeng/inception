@@ -173,7 +173,7 @@ function init() {
     //d
     if (e.which === 68) {
       e.preventDefault();
-      speed = 0;
+      exports.speed = 0;
     }
     //e
     if (e.which === 69) {
