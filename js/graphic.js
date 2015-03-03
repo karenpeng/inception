@@ -1,34 +1,22 @@
-module.exports = {
-  zoomIn: function (value) {
-    //camera.lookAt(new THREE.Vector3());
-    setTimeout(function () {
-      //move the camera
-    }, 1000);
-  },
-
-  changeValue: function (value) {
-
-  },
-
-  zoomOut: function () {
-
-  }
-}
-
 require('./vendor/CurveExtras.js');
 //require('./vendor/stats.js');
 var createGate = require('./createGate.js');
+var createText = require('./createText.js');
 
 var camera, scene, stats, splineCamera, cameraHelper, cameraEye, scale,
   splines, tube, material, tubeMesh,
-  binormal, normal, lookAt,
-  forward,
+  binormal, normal, lookForward,
+  forward, raycaster,
   renderer, rollercoaster, splineIndex;
 var planePP;
-var visible = true;
+var visible = false;
 var magicNum = 1;
-var reverse = false;
+exports.speed = 1;
+var speedRecord = exports.speed;
 var cameraCounter = 0;
+var loopTime = 10000;
+var texts = [];
+var dir;
 
 function init() {
 
@@ -36,7 +24,11 @@ function init() {
   splineIndex = 3;
   targetRotation = 0;
   scale = 1;
+  raycaster = new THREE.Raycaster();
   var container = document.createElement('div');
+  // container.style.position = 'absolute';
+  // container.style.left = '440px';
+  // container.style.width = (window.innerWidth - 440) + 'px';
   document.body.appendChild(container);
 
   scene = new THREE.Scene();
@@ -101,8 +93,8 @@ function init() {
   tubeMesh.scale.set(scale, scale, scale);
   scene.add(tubeMesh);
 
-  var bgTube = new THREE.TubeGeometry(splines[4], 100, 2, 4, true);
-  var mesh = new THREE.Mesh(bgTube, material);
+  // var bgTube = new THREE.TubeGeometry(splines[4], 100, 2, 4, true);
+  // var mesh = new THREE.Mesh(bgTube, material);
   //parent.add(mesh);
 
   planePP = createGate();
@@ -127,6 +119,7 @@ function init() {
   console.log(stats)
   stats.domElement.style.position = 'absolute';
   stats.domElement.style.top = '0px';
+  stats.domElement.style.right = '0px';
   container.appendChild(stats.domElement);
 
   window.addEventListener('resize', onWindowResize, false);
@@ -155,7 +148,20 @@ function init() {
     //c
     if (e.which === 67) {
       e.preventDefault();
-      reverse = !reverse;
+      //reverse = !reverse;
+      if (exports.speed === 1) exports.speed = -1;
+      else if (exports.speed === -1) exports.speed = 1;
+      else if (exports.speed === 0) exports.speed = speedRecord;
+    }
+    //d
+    if (e.which === 68) {
+      e.preventDefault();
+      exports.speed = 0;
+    }
+    //e
+    if (e.which === 69) {
+      e.preventDefault();
+      addText();
     }
   }
 
@@ -164,20 +170,176 @@ function init() {
 //module.exports = {
 //  addGate: function () {
 function addGate() {
-    var gate = createGate();
-    //gate.lookAt(splineCamera.position);
-    gate.position.copy(splineCamera.position);
-    gate.matrix.lookAt(gate.position, lookAt, normal);
-    gate.rotation.setFromRotationMatrix(gate.matrix, gate.rotation.order);
-    scene.add(gate);
-  }
-  //}
-
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  var gate = createGate();
+  //gate.lookAt(splineCamera.position);
+  gate.position.copy(forward.position);
+  gate.matrix.lookAt(gate.position, lookForward, new THREE.Vector3(0, 0, 0));
+  gate.rotation.setFromRotationMatrix(gate.matrix, gate.rotation.order);
+  scene.add(gate);
 }
+exports.addGate = addGate;
+//}
+function addText(_text, _tag) {
+  var text = createText(_text, _tag);
+  text.position.copy(forward.position);
+  text.matrix.lookAt(text.position, lookForward, new THREE.Vector3(0, 0, 0));
+  text.rotation.setFromRotationMatrix(text.matrix, text.rotation.order);
+  texts.push(text);
+  scene.add(text);
+}
+exports.forward = forward;
+exports.lookForward = lookForward;
+exports.texts = texts;
+exports.scene = scene;
+exports.addText = addText;
+
+function destoryText() {
+  scene.remove(texts[texts.length - 1]);
+  texts[texts.length - 1].children.forEach(function (item) {
+    item.dispose();
+  })
+  texts[texts.length - 1] = null;
+}
+
+function changeText(_text, _tag) {
+  destoryText();
+  addText(_text, _tag);
+}
+exports.changeText = changeText;
+
+// function isHit(obj) {
+//   var ray = dir;
+//   raycaster.ray.set(splineCamera, ray);
+//   var intersects = raycaster.intersectObjects(obj);
+//   if (intersects.length > 0 && intersects[0].distance <= 10) {
+//     return intersects[0].object.name;
+//   }
+//   return null;
+// }
+//
+function isHit() {
+  var ray = dir;
+  //console.log(texts[texts.length - 1] instanceof THREE.Mesh)
+  var obj = [texts[texts.length - 1], texts[texts.length - 1]];
+  raycaster.ray.set(splineCamera.position, ray);
+  var intersects = raycaster.intersectObjects(obj, true);
+  console.log
+  if (intersects.length > 0 && intersects[0].distance <= 10) {
+    return intersects[0].object.name;
+  }
+  return null;
+}
+
+var EventEmitter = require('events').EventEmitter;
+var inherits = require('inherits');
+//module.exports = Widget;
+inherits(Widget, EventEmitter);
+
+function Widget() {
+  // if(isHit()!== null){
+  //   this.emit('hit');
+  // }
+  this.alarm = false;
+  if (!(this instanceof Widget)) return new Widget();
+}
+
+Widget.prototype.detect = function () {
+  if (isHit() !== null && !this.alarm) {
+    this.alarm = true;
+    console.log('ouch!')
+    this.emit('hit');
+  }
+};
+
+var w = Widget();
+exports.w = w;
+
+function render() {
+  //var time = Date.now();
+  //if (rollercoaster) {
+  updateCamera();
+  updateForward();
+  if (texts.length > 0) {
+    w.detect();
+  }
+  tubeMesh.visible = visible;
+  forward.visible = visible;
+  stats.update();
+  renderer.render(scene, rollercoaster ? splineCamera : camera);
+
+  //console.log(splineCamera.position);
+}
+
+function updateForward() {
+  var tForward = ((cameraCounter + 500) % loopTime) / loopTime;
+  var pos = tube.parameters.path.getPointAt(tForward);
+  pos.multiplyScalar(scale);
+
+  forward.position.copy(pos);
+
+  lookForward = tube.parameters.path.getPointAt((tForward + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
+
+  forward.matrix.lookAt(forward.position, lookForward, normal);
+  forward.rotation.setFromRotationMatrix(forward.matrix, forward.rotation.order);
+
+}
+
+function updateCamera() {
+  if (exports.speed === 1) {
+    cameraCounter += 10;
+    speedRecord = exports.speed;
+  } else if (exports.speed === -1) {
+    cameraCounter -= 10;
+    speedRecord = exports.speed;
+  }
+
+  if (cameraCounter <= 0) {
+    cameraCounter = loopTime;
+  }
+  var t = (cameraCounter % loopTime) / loopTime;
+  var pos = tube.parameters.path.getPointAt(t);
+  pos.multiplyScalar(scale);
+
+  // var segments = tube.tangents.length;
+  // var pickt = t * segments;
+  // var pick = Math.floor(pickt);
+  // var pickNext = (pick + 1) % segments;
+
+  // binormal.subVectors(tube.binormals[pickNext], tube.binormals[pick]);
+  // binormal.multiplyScalar(pickt - pick).add(tube.binormals[pick]);
+
+  //var dir = tube.parameters.path.getTangentAt(t);
+  dir = tube.parameters.path.getTangent(t);
+
+  //var offset = 15;
+
+  //normal.copy(binormal).cross(dir);
+
+  // We move on a offset on its binormal
+  //pos.add(normal.clone().multiplyScalar(offset));
+
+  splineCamera.position.copy(pos);
+
+  cameraEye.position.copy(pos);
+
+  var lookAt = tube.parameters.path.getPointAt((t + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
+
+  //this is called look ahead, not sure what it means
+  //lookAt.copy(pos).add(dir);
+  splineCamera.matrix.lookAt(splineCamera.position, lookAt, normal);
+  splineCamera.rotation.setFromRotationMatrix(splineCamera.matrix, splineCamera.rotation.order);
+  cameraHelper.update();
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  planePP.lookAt(splineCamera.position);
+  planePP.position.copy(splineCamera.position);
+  render();
+}
+
+init();
+animate();
 
 function switchCamera() {
   rollercoaster = !rollercoaster;
@@ -199,90 +361,10 @@ function switchSpline() {
   scene.add(tubeMesh);
 }
 
-function render() {
-  //var time = Date.now();
-  //if (rollercoaster) {
-  updateCamera();
-  updateForward();
-
-  tubeMesh.visible = visible;
-  stats.update();
-  renderer.render(scene, rollercoaster ? splineCamera : camera);
-
-  //console.log(splineCamera.position);
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  splineCamera.aspect = window.innerWidth / window.innerHeight;
+  splineCamera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
 }
-
-function updateForward() {
-  var loopTime = 5000;
-  var tForward = ((cameraCounter + 100) % loopTime) / loopTime;
-  var pos = tube.parameters.path.getPointAt(tForward);
-  pos.multiplyScalar(scale);
-
-  forward.position.copy(pos);
-
-  var lookForward = tube.parameters.path.getPointAt((tForward + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
-
-  forward.matrix.lookAt(forward.position, lookForward, normal);
-  forward.rotation.setFromRotationMatrix(forward.matrix, forward.rotation.order);
-
-}
-
-function updateCamera() {
-  //console.log(time);
-  // var loopTime = 20000;
-  var loopTime = 5000;
-  var t;
-
-  if (!reverse) {
-    cameraCounter += 10;
-    // t = 1 - (time % loopTime) / loopTime;
-    //t = ((loopTime - time) % loopTime) / loopTime;
-  } else {
-    cameraCounter -= 10;
-    // t = (time % loopTime) / loopTime;
-  }
-  if (cameraCounter === 0) counter = loopTime;
-  //console.log(counter);
-  t = (cameraCounter % loopTime) / loopTime;
-  var pos = tube.parameters.path.getPointAt(t);
-  pos.multiplyScalar(scale);
-
-  // var segments = tube.tangents.length;
-  // var pickt = t * segments;
-  // var pick = Math.floor(pickt);
-  // var pickNext = (pick + 1) % segments;
-
-  // binormal.subVectors(tube.binormals[pickNext], tube.binormals[pick]);
-  // binormal.multiplyScalar(pickt - pick).add(tube.binormals[pick]);
-
-  //var dir = tube.parameters.path.getTangentAt(t);
-
-  //var offset = 15;
-
-  //normal.copy(binormal).cross(dir);
-
-  // We move on a offset on its binormal
-  //pos.add(normal.clone().multiplyScalar(offset));
-
-  splineCamera.position.copy(pos);
-
-  cameraEye.position.copy(pos);
-
-  lookAt = tube.parameters.path.getPointAt((t + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
-
-  //this is called look ahead, not sure what it means
-  //lookAt.copy(pos).add(dir);
-  splineCamera.matrix.lookAt(splineCamera.position, lookAt, normal);
-  splineCamera.rotation.setFromRotationMatrix(splineCamera.matrix, splineCamera.rotation.order);
-  cameraHelper.update();
-}
-
-function animate() {
-  requestAnimationFrame(animate);
-  planePP.lookAt(splineCamera.position);
-  planePP.position.copy(splineCamera.position);
-  render();
-}
-
-init();
-animate();

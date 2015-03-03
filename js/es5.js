@@ -1,21 +1,27 @@
 var graphic = require('./graphic.js');
+//var w = graphic.Widget();
 
-//something i know from here:
-//1.how many layers are there
-//2.when to zoomIn
-//3.when to return value
-//4.when to zoomOut
-//so...maybe i could write instruction to build the world from here?
-
-module.exports = function* (history) {
-
-  //graphic.makeCubes(history.length);
-  //console.log('hey')
+module.exports = function (history) {
+  var index = 1;
+  var history = history;
+  return function () {
+    if (history[index].string === undefined) {
+      zoomIn(history[index]);
+      index++;
+      graphic.w.alarm = false;
+    } else {
+      //wait until hits it
+      graphic.w.on('hit', function () {
+        changeValue(history[index]);
+        index++;
+      });
+    }
+  }
 
   function zoomIn(history) {
     //zoomIn another world
     //graphic.zoomIn(value);
-    //console.log(Object.keys(graphic))
+    console.log('wat ' + Object.keys(graphic))
     graphic.speed = 1;
     graphic.addText(history.value, history.string);
     setInterval(function () {
@@ -38,12 +44,4 @@ module.exports = function* (history) {
     graphic.speed = -1;
   }
 
-  for (var i = 1; i < history.length; i++) {
-    if (history[i].string === undefined) {
-      yield zoomIn(history[i]);
-    } else {
-      yield changeValue(history[i], zoomOut);
-      //yield zoomOut();
-    }
-  }
 }

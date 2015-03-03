@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "falafel": "^1.0.1"
+    "falafel": "^1.0.1",
+    "inherits": "^2.0.1"
   }
 }
