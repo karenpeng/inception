@@ -253,8 +253,9 @@ function updateCamera(time) {
   var t;
 
   if (reverse) {
-    //t  = 1 - (time % loopTime) / loopTime;
-    t = ((loopTime - time) % loopTime) / loopTime;
+    t = 1 - (time % loopTime) / loopTime;
+    //t = ((loopTime - time) % loopTime) / loopTime;
+    //t += (sin(time)
   } else {
     t = (time % loopTime) / loopTime;
   }
