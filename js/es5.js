@@ -2,7 +2,7 @@ var graphic = require('./graphic.js');
 //var w = graphic.Widget();
 
 module.exports = function (history) {
-  var index = 1;
+  var index = 0;
   var history = history;
 
   //wait until hits it
@@ -13,9 +13,8 @@ module.exports = function (history) {
     }
   });
 
-  console.log('lol')
-
   this.next = function () {
+    //if (!history.length) return;
     if (history[index].string === undefined) {
       zoomIn(history[index]);
       index++;
@@ -31,12 +30,14 @@ module.exports = function (history) {
 function zoomIn(history) {
   //zoomIn another world
   //graphic.zoomIn(value);
-  console.log('wat ' + Object.keys(graphic))
+  //console.log('wat ' + Object.keys(graphic))
   graphic.speed = 1;
   graphic.addText(history.value, history.string);
-  setInterval(function () {
-    //graphic.addGate();
-  }, 600);
+  for (var i = 0; i < 10; i++) {
+    setTimeout(function () {
+      graphic.addGate();
+    }, i * 400);
+  }
 }
 
 function changeValue(history, callback) {

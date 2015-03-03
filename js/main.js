@@ -16,14 +16,21 @@ var history = parse(test).history;
 
 //console.log(history)
 
-// history.forEach(function (item) {
-//   console.log(item)
-// })
+history.forEach(function (item) {
+  //console.log('behold: ' + item[Object.keys(item)])
+  console.log(item.value)
+})
 
 var control = require('./es5.js');
 var func = new control(history);
 
-func.next();
+window.onkeydown = function (e) {
+  //enter
+  if (e.which === 13) {
+    e.preventDefault();
+    func.next();
+  }
+}
 
 // var iterator = incept(history);
 // //setInterval(function () {

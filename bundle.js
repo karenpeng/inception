@@ -134,7 +134,7 @@ var graphic = require('./graphic.js');
 //var w = graphic.Widget();
 
 module.exports = function (history) {
-  var index = 1;
+  var index = 0;
   var history = history;
 
   //wait until hits it
@@ -145,9 +145,8 @@ module.exports = function (history) {
     }
   });
 
-  console.log('lol')
-
   this.next = function () {
+    //if (!history.length) return;
     if (history[index].string === undefined) {
       zoomIn(history[index]);
       index++;
@@ -163,12 +162,14 @@ module.exports = function (history) {
 function zoomIn(history) {
   //zoomIn another world
   //graphic.zoomIn(value);
-  console.log('wat ' + Object.keys(graphic))
+  //console.log('wat ' + Object.keys(graphic))
   graphic.speed = 1;
   graphic.addText(history.value, history.string);
-  setInterval(function () {
-    //graphic.addGate();
-  }, 600);
+  for (var i = 0; i < 10; i++) {
+    setTimeout(function () {
+      graphic.addGate();
+    }, i * 400);
+  }
 }
 
 function changeValue(history, callback) {
@@ -208,7 +209,7 @@ var dir;
 
 function init() {
 
-  rollercoaster = false;
+  rollercoaster = true;
   splineIndex = 3;
   targetRotation = 0;
   scale = 1;
@@ -575,14 +576,21 @@ var history = parse(test).history;
 
 //console.log(history)
 
-// history.forEach(function (item) {
-//   console.log(item)
-// })
+history.forEach(function (item) {
+  //console.log('behold: ' + item[Object.keys(item)])
+  console.log(item.value)
+})
 
 var control = require('./es5.js');
 var func = new control(history);
 
-func.next();
+window.onkeydown = function (e) {
+  //enter
+  if (e.which === 13) {
+    e.preventDefault();
+    func.next();
+  }
+}
 
 // var iterator = incept(history);
 // //setInterval(function () {
