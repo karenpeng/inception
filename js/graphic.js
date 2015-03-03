@@ -174,6 +174,7 @@ function init() {
     if (e.which === 68) {
       e.preventDefault();
       exports.speed = 0;
+      console.log('stop');
     }
     //e
     if (e.which === 69) {
