@@ -136,46 +136,54 @@ var graphic = require('./graphic.js');
 module.exports = function (history) {
   var index = 1;
   var history = history;
-  return function () {
+
+  //wait until hits it
+  graphic.w.on('hit', function () {
+    if (history[index].string !== undefined) {
+      changeValue(history[index]);
+      index++;
+    }
+  });
+
+  console.log('lol')
+
+  this.next = function () {
     if (history[index].string === undefined) {
       zoomIn(history[index]);
       index++;
       graphic.w.alarm = false;
-    } else {
-      //wait until hits it
-      graphic.w.on('hit', function () {
-        changeValue(history[index]);
-        index++;
-      });
     }
+    var self = this;
+    setTimeout(function () {
+      self.next();
+    }, 1000);
   }
+}
 
-  function zoomIn(history) {
-    //zoomIn another world
-    //graphic.zoomIn(value);
-    console.log('wat ' + Object.keys(graphic))
-    graphic.speed = 1;
-    graphic.addText(history.value, history.string);
-    setInterval(function () {
-      //graphic.addGate();
-    }, 600);
-  }
+function zoomIn(history) {
+  //zoomIn another world
+  //graphic.zoomIn(value);
+  console.log('wat ' + Object.keys(graphic))
+  graphic.speed = 1;
+  graphic.addText(history.value, history.string);
+  setInterval(function () {
+    //graphic.addGate();
+  }, 600);
+}
 
-  function changeValue(history, callback) {
-    graphic.speed = 0;
-    graphic.changeText(history.value, history.string);
-    // setTimeout(function () {
-    //   callback();
-    // }, 2000);
-    zoomOut();
-  }
+function changeValue(history, callback) {
+  graphic.speed = 0;
+  graphic.changeText(history.value, history.string);
+  // setTimeout(function () {
+  //   callback();
+  // }, 2000);
+  zoomOut();
+}
 
-  function zoomOut() {
-    //get back to the outter world
-    //also change the value
-    graphic.speed = -1;
-  }
-
+function zoomOut() {
+  //get back to the outter world
+  //also change the value
+  graphic.speed = -1;
 }
 },{"./graphic.js":"/Users/karen/Documents/my_project/inception/js/graphic.js"}],"/Users/karen/Documents/my_project/inception/js/graphic.js":[function(require,module,exports){
 require('./vendor/CurveExtras.js');
@@ -572,7 +580,9 @@ var history = parse(test).history;
 // })
 
 var control = require('./es5.js');
-var func = control(history);
+var func = new control(history);
+
+func.next();
 
 // var iterator = incept(history);
 // //setInterval(function () {
@@ -582,9 +592,9 @@ var func = control(history);
 //   }
 //   //}, 1000);
 // exports.callNext = callNext();
-setInterval(function () {
-  func();
-}, 1000);
+// setInterval(function () {
+//   func();
+// }, 1000);
 },{"./es5.js":"/Users/karen/Documents/my_project/inception/js/es5.js","./parse.js":"/Users/karen/Documents/my_project/inception/js/parse.js"}],"/Users/karen/Documents/my_project/inception/js/parse.js":[function(require,module,exports){
 var falafel = require('falafel');
 var inspect = require('object-inspect');

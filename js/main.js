@@ -21,7 +21,9 @@ var history = parse(test).history;
 // })
 
 var control = require('./es5.js');
-var func = control(history);
+var func = new control(history);
+
+func.next();
 
 // var iterator = incept(history);
 // //setInterval(function () {
@@ -31,6 +33,6 @@ var func = control(history);
 //   }
 //   //}, 1000);
 // exports.callNext = callNext();
-setInterval(function () {
-  func();
-}, 1000);
+// setInterval(function () {
+//   func();
+// }, 1000);
