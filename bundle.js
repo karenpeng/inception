@@ -35,6 +35,41 @@ module.exports = {
   paramNumber: 0,
   history: []
 }
+},{}],"/Users/karen/Documents/my_project/inception/js/editor.js":[function(require,module,exports){
+module.exports = {
+
+  init: function () {
+    var editor1 = ace.edit("editor1");
+    editor1.setTheme("ace/theme/monokai");
+    editor1.getSession().setMode("ace/mode/javascript");
+
+    var editor2 = ace.edit("editor2");
+    editor2.setTheme("ace/theme/monokai");
+    editor2.getSession().setMode("ace/mode/javascript");
+  },
+
+  getValue: function (name) {
+    switch (name) {
+    case '1':
+      return editor1.getValue();
+    case '2':
+      return editor2.getValue();
+    }
+  },
+
+  getLineNum: function (string) {
+    var lines = editor1.session.getAllLines();
+    var stringNum = [];
+    for (var i = 0; i < lines.length; i++) {
+      if (lines[i].indexOf(string) !== -1) stringNum.push(i);
+    }
+    return stringNum;
+  },
+
+  addMarker: function () {
+
+  }
+}
 },{}],"/Users/karen/Documents/my_project/inception/js/graphic.js":[function(require,module,exports){
 module.exports = {
   zoomIn: function (value) {
@@ -59,13 +94,14 @@ var createGate = require('./createGate.js');
 
 var camera, scene, stats, splineCamera, cameraHelper, cameraEye, scale,
   splines, tube, material, tubeMesh,
-  binormal, normal, lookAt,
+  binormal, normal, lookForward,
   forward,
   renderer, rollercoaster, splineIndex;
 var planePP;
 var visible = true;
 var magicNum = 1;
-var reverse = false;
+var speed = 1;
+var speedRecord = speed;
 var cameraCounter = 0;
 
 function init() {
@@ -75,6 +111,9 @@ function init() {
   targetRotation = 0;
   scale = 1;
   var container = document.createElement('div');
+  // container.style.position = 'absolute';
+  // container.style.left = '440px';
+  // container.style.width = (window.innerWidth - 440) + 'px';
   document.body.appendChild(container);
 
   scene = new THREE.Scene();
@@ -165,6 +204,7 @@ function init() {
   console.log(stats)
   stats.domElement.style.position = 'absolute';
   stats.domElement.style.top = '0px';
+  stats.domElement.style.right = '0px';
   container.appendChild(stats.domElement);
 
   window.addEventListener('resize', onWindowResize, false);
@@ -193,7 +233,17 @@ function init() {
     //c
     if (e.which === 67) {
       e.preventDefault();
-      reverse = !reverse;
+      //reverse = !reverse;
+      if (speed === 1) speed = -1;
+      else if (speed === -1) speed = 1;
+      else if (speed === 0) speed = speedRecord;
+      console.log(speed)
+    }
+    //d
+    if (e.which === 68) {
+      e.preventDefault();
+      //reverse = !reverse;
+      speed = 0;
     }
   }
 
@@ -204,8 +254,8 @@ function init() {
 function addGate() {
     var gate = createGate();
     //gate.lookAt(splineCamera.position);
-    gate.position.copy(splineCamera.position);
-    gate.matrix.lookAt(gate.position, lookAt, normal);
+    gate.position.copy(forward.position);
+    gate.matrix.lookAt(gate.position, lookForward, normal);
     gate.rotation.setFromRotationMatrix(gate.matrix, gate.rotation.order);
     scene.add(gate);
   }
@@ -244,6 +294,7 @@ function render() {
   updateForward();
 
   tubeMesh.visible = visible;
+  forward.visible = visible;
   stats.update();
   renderer.render(scene, rollercoaster ? splineCamera : camera);
 
@@ -258,7 +309,7 @@ function updateForward() {
 
   forward.position.copy(pos);
 
-  var lookForward = tube.parameters.path.getPointAt((tForward + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
+  lookForward = tube.parameters.path.getPointAt((tForward + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
 
   forward.matrix.lookAt(forward.position, lookForward, normal);
   forward.rotation.setFromRotationMatrix(forward.matrix, forward.rotation.order);
@@ -266,22 +317,19 @@ function updateForward() {
 }
 
 function updateCamera() {
-  //console.log(time);
-  // var loopTime = 20000;
   var loopTime = 5000;
-  var t;
-
-  if (!reverse) {
+  if (speed === 1) {
     cameraCounter += 10;
-    // t = 1 - (time % loopTime) / loopTime;
-    //t = ((loopTime - time) % loopTime) / loopTime;
-  } else {
+    speedRecord = speed;
+  } else if (speed === -1) {
     cameraCounter -= 10;
-    // t = (time % loopTime) / loopTime;
+    speedRecord = speed;
   }
-  if (cameraCounter === 0) counter = loopTime;
-  //console.log(counter);
-  t = (cameraCounter % loopTime) / loopTime;
+
+  if (cameraCounter <= 0) {
+    cameraCounter = loopTime;
+  }
+  var t = (cameraCounter % loopTime) / loopTime;
   var pos = tube.parameters.path.getPointAt(t);
   pos.multiplyScalar(scale);
 
@@ -306,7 +354,7 @@ function updateCamera() {
 
   cameraEye.position.copy(pos);
 
-  lookAt = tube.parameters.path.getPointAt((t + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
+  var lookAt = tube.parameters.path.getPointAt((t + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
 
   //this is called look ahead, not sure what it means
   //lookAt.copy(pos).add(dir);
@@ -367,13 +415,15 @@ module.exports = function* (history) {
 var parse = require('./parse.js');
 var incept = require('./incept.js');
 
+require('./editor.js').init();
+
 function fibonacci(num) {
   if (num === 0) return 0;
   if (num === 1) return 1;
   return fibonacci(num - 1) + fibonacci(num - 2);
 }
 
-var call = 'fibonacci(2)';
+var call = 'fibonacci(3)';
 
 var test = fibonacci.toString().concat(call);
 var history = parse(test).history;
@@ -385,7 +435,7 @@ var history = parse(test).history;
 history.forEach(function (item) {
   console.log(item)
 })
-},{"./incept.js":"/Users/karen/Documents/my_project/inception/js/incept.js","./parse.js":"/Users/karen/Documents/my_project/inception/js/parse.js"}],"/Users/karen/Documents/my_project/inception/js/parse.js":[function(require,module,exports){
+},{"./editor.js":"/Users/karen/Documents/my_project/inception/js/editor.js","./incept.js":"/Users/karen/Documents/my_project/inception/js/incept.js","./parse.js":"/Users/karen/Documents/my_project/inception/js/parse.js"}],"/Users/karen/Documents/my_project/inception/js/parse.js":[function(require,module,exports){
 var falafel = require('falafel');
 var inspect = require('object-inspect');
 

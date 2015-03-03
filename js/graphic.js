@@ -21,13 +21,14 @@ var createGate = require('./createGate.js');
 
 var camera, scene, stats, splineCamera, cameraHelper, cameraEye, scale,
   splines, tube, material, tubeMesh,
-  binormal, normal, lookAt,
+  binormal, normal, lookForward,
   forward,
   renderer, rollercoaster, splineIndex;
 var planePP;
 var visible = true;
 var magicNum = 1;
-var reverse = false;
+var speed = 1;
+var speedRecord = speed;
 var cameraCounter = 0;
 
 function init() {
@@ -37,6 +38,9 @@ function init() {
   targetRotation = 0;
   scale = 1;
   var container = document.createElement('div');
+  // container.style.position = 'absolute';
+  // container.style.left = '440px';
+  // container.style.width = (window.innerWidth - 440) + 'px';
   document.body.appendChild(container);
 
   scene = new THREE.Scene();
@@ -127,6 +131,7 @@ function init() {
   console.log(stats)
   stats.domElement.style.position = 'absolute';
   stats.domElement.style.top = '0px';
+  stats.domElement.style.right = '0px';
   container.appendChild(stats.domElement);
 
   window.addEventListener('resize', onWindowResize, false);
@@ -155,7 +160,17 @@ function init() {
     //c
     if (e.which === 67) {
       e.preventDefault();
-      reverse = !reverse;
+      //reverse = !reverse;
+      if (speed === 1) speed = -1;
+      else if (speed === -1) speed = 1;
+      else if (speed === 0) speed = speedRecord;
+      console.log(speed)
+    }
+    //d
+    if (e.which === 68) {
+      e.preventDefault();
+      //reverse = !reverse;
+      speed = 0;
     }
   }
 
@@ -166,8 +181,8 @@ function init() {
 function addGate() {
     var gate = createGate();
     //gate.lookAt(splineCamera.position);
-    gate.position.copy(splineCamera.position);
-    gate.matrix.lookAt(gate.position, lookAt, normal);
+    gate.position.copy(forward.position);
+    gate.matrix.lookAt(gate.position, lookForward, normal);
     gate.rotation.setFromRotationMatrix(gate.matrix, gate.rotation.order);
     scene.add(gate);
   }
@@ -206,6 +221,7 @@ function render() {
   updateForward();
 
   tubeMesh.visible = visible;
+  forward.visible = visible;
   stats.update();
   renderer.render(scene, rollercoaster ? splineCamera : camera);
 
@@ -220,7 +236,7 @@ function updateForward() {
 
   forward.position.copy(pos);
 
-  var lookForward = tube.parameters.path.getPointAt((tForward + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
+  lookForward = tube.parameters.path.getPointAt((tForward + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
 
   forward.matrix.lookAt(forward.position, lookForward, normal);
   forward.rotation.setFromRotationMatrix(forward.matrix, forward.rotation.order);
@@ -228,22 +244,19 @@ function updateForward() {
 }
 
 function updateCamera() {
-  //console.log(time);
-  // var loopTime = 20000;
   var loopTime = 5000;
-  var t;
-
-  if (!reverse) {
+  if (speed === 1) {
     cameraCounter += 10;
-    // t = 1 - (time % loopTime) / loopTime;
-    //t = ((loopTime - time) % loopTime) / loopTime;
-  } else {
+    speedRecord = speed;
+  } else if (speed === -1) {
     cameraCounter -= 10;
-    // t = (time % loopTime) / loopTime;
+    speedRecord = speed;
   }
-  if (cameraCounter === 0) counter = loopTime;
-  //console.log(counter);
-  t = (cameraCounter % loopTime) / loopTime;
+
+  if (cameraCounter <= 0) {
+    cameraCounter = loopTime;
+  }
+  var t = (cameraCounter % loopTime) / loopTime;
   var pos = tube.parameters.path.getPointAt(t);
   pos.multiplyScalar(scale);
 
@@ -268,7 +281,7 @@ function updateCamera() {
 
   cameraEye.position.copy(pos);
 
-  lookAt = tube.parameters.path.getPointAt((t + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
+  var lookAt = tube.parameters.path.getPointAt((t + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
 
   //this is called look ahead, not sure what it means
   //lookAt.copy(pos).add(dir);
