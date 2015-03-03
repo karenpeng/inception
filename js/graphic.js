@@ -18,6 +18,7 @@ module.exports = {
 require('./vendor/CurveExtras.js');
 //require('./vendor/stats.js');
 var createGate = require('./createGate.js');
+var createText = require('./createText.js');
 
 var camera, scene, stats, splineCamera, cameraHelper, cameraEye, scale,
   splines, tube, material, tubeMesh,
@@ -30,6 +31,7 @@ var magicNum = 1;
 var speed = 1;
 var speedRecord = speed;
 var cameraCounter = 0;
+var loopTime = 10000;
 
 function init() {
 
@@ -169,8 +171,12 @@ function init() {
     //d
     if (e.which === 68) {
       e.preventDefault();
-      //reverse = !reverse;
       speed = 0;
+    }
+    //e
+    if (e.which === 69) {
+      e.preventDefault();
+      addText();
     }
   }
 
@@ -187,6 +193,13 @@ function addGate() {
     scene.add(gate);
   }
   //}
+function addText() {
+  var text = createText('fibonacci(3)');
+  text.position.copy(forward.position);
+  text.matrix.lookAt(text.position, lookForward, normal);
+  text.rotation.setFromRotationMatrix(text.matrix, text.rotation.order);
+  scene.add(text);
+}
 
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -229,8 +242,7 @@ function render() {
 }
 
 function updateForward() {
-  var loopTime = 5000;
-  var tForward = ((cameraCounter + 100) % loopTime) / loopTime;
+  var tForward = ((cameraCounter + 500) % loopTime) / loopTime;
   var pos = tube.parameters.path.getPointAt(tForward);
   pos.multiplyScalar(scale);
 
@@ -244,7 +256,6 @@ function updateForward() {
 }
 
 function updateCamera() {
-  var loopTime = 5000;
   if (speed === 1) {
     cameraCounter += 10;
     speedRecord = speed;
