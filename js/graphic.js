@@ -20,7 +20,7 @@ var dir;
 
 function init() {
 
-  rollercoaster = false;
+  rollercoaster = true;
   splineIndex = 3;
   targetRotation = 0;
   scale = 1;
