@@ -129,6 +129,41 @@ module.exports = {
   paramNumber: 0,
   history: []
 }
+},{}],"/Users/karen/Documents/my_project/inception/js/editor.js":[function(require,module,exports){
+module.exports = {
+
+  init: function () {
+    var editor1 = ace.edit("editor1");
+    editor1.setTheme("ace/theme/monokai");
+    editor1.getSession().setMode("ace/mode/javascript");
+
+    var editor2 = ace.edit("editor2");
+    editor2.setTheme("ace/theme/monokai");
+    editor2.getSession().setMode("ace/mode/javascript");
+  },
+
+  getValue: function (name) {
+    switch (name) {
+    case '1':
+      return editor1.getValue();
+    case '2':
+      return editor2.getValue();
+    }
+  },
+
+  getLineNum: function (string) {
+    var lines = editor1.session.getAllLines();
+    var stringNum = [];
+    for (var i = 0; i < lines.length; i++) {
+      if (lines[i].indexOf(string) !== -1) stringNum.push(i);
+    }
+    return stringNum;
+  },
+
+  addMarker: function () {
+
+  }
+}
 },{}],"/Users/karen/Documents/my_project/inception/js/es5.js":[function(require,module,exports){
 var graphic = require('./graphic.js');
 //var w = graphic.Widget();
@@ -561,7 +596,7 @@ function onWindowResize() {
 var parse = require('./parse.js');
 //var incept = require('./incept.js');
 
-//require('./editor.js').init();
+require('./editor.js').init();
 
 function fibonacci(num) {
   if (num === 0) return 0;
@@ -578,7 +613,7 @@ var history = parse(test).history;
 
 history.forEach(function (item) {
   //console.log('behold: ' + item[Object.keys(item)])
-  console.log(item.value)
+  console.log(item.value + ' ' + item.string)
 })
 
 var control = require('./es5.js');
@@ -603,7 +638,7 @@ window.onkeydown = function (e) {
 // setInterval(function () {
 //   func();
 // }, 1000);
-},{"./es5.js":"/Users/karen/Documents/my_project/inception/js/es5.js","./parse.js":"/Users/karen/Documents/my_project/inception/js/parse.js"}],"/Users/karen/Documents/my_project/inception/js/parse.js":[function(require,module,exports){
+},{"./editor.js":"/Users/karen/Documents/my_project/inception/js/editor.js","./es5.js":"/Users/karen/Documents/my_project/inception/js/es5.js","./parse.js":"/Users/karen/Documents/my_project/inception/js/parse.js"}],"/Users/karen/Documents/my_project/inception/js/parse.js":[function(require,module,exports){
 var falafel = require('falafel');
 var inspect = require('object-inspect');
 
