@@ -35,7 +35,7 @@ module.exports = function (src) {
     }
   }).toString();
 
-  // console.log(out);
+  console.log(out);
   // console.log(nodes);
 
   var stack = [];

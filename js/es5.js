@@ -1,4 +1,5 @@
 var graphic = require('./graphic.js');
+var stage = require('./stage.js');
 //var w = graphic.Widget();
 
 module.exports = function (history) {
@@ -6,6 +7,7 @@ module.exports = function (history) {
   var history = history;
 
   //wait until hits it
+  //console.log(graphic.w)
   graphic.w.on('hit', function () {
     if (history[index].string !== undefined) {
       changeValue(history[index]);
@@ -32,17 +34,17 @@ function zoomIn(history) {
   //graphic.zoomIn(value);
   //console.log('wat ' + Object.keys(graphic))
   graphic.speed = 1;
-  graphic.addText(history.value, history.string);
+  graphic.addText(history.value, history.string, stage.scene);
   for (var i = 0; i < 10; i++) {
     setTimeout(function () {
-      graphic.addGate();
+      graphic.addGate(stage.scene);
     }, i * 400);
   }
 }
 
 function changeValue(history, callback) {
   graphic.speed = 0;
-  graphic.changeText(history.value, history.string);
+  graphic.changeText(history.value, history.string, stage.scene);
   // setTimeout(function () {
   //   callback();
   // }, 2000);
