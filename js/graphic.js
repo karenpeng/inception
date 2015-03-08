@@ -17,7 +17,7 @@ var cameraCounter = 0;
 var loopTime = 10000;
 var texts = [];
 var dir;
-var ball;
+var ball = null;
 var gates = [];
 var scalar = 1;
 var expo = 1;
@@ -62,6 +62,63 @@ module.exports = {
 
   },
 
+  render: function (scene, camera, renderer) {
+    //var time = Date.now();
+    //if (rollercoaster) {
+    var time = Date.now()
+    this.updateCamera();
+    this.updateForward();
+    if (texts.length > 0) {
+      w.detect(this.isHit());
+    }
+    tubeMesh.visible = visible;
+    forward.visible = visible;
+
+    planePP.lookAt(splineCamera.position);
+    planePP.position.copy(splineCamera.position);
+
+    //expo *= 1.00000000000000000000000000000000000000000000001
+    //scalar += expo
+    scalar += 0.1
+      // ball.scale = new THREE.Vector3(scalar, scalar, scalar)
+    if (ball !== null) {
+      ball.scale.set(scalar, scalar, scalar)
+      console.log(ball.matrixWorld.elements[0])
+      if (ball.matrixWorld.elements[0] > 10) {
+        console.log('by-bye ball')
+        scene.remove(ball)
+        ball.traverse(function (item) {
+          if (item instanceof THREE.Mesh) {
+            item.dispose()
+          }
+        })
+        ball = null
+      }
+    }
+
+    if (gates.length > 0) {
+      //   console.log('sss')
+      gates.forEach(function (gate, index) {
+
+        //console.log(gate instanceof THREE.Mesh)
+        //console.log(gate instanceof THREE.Object3D)
+        //mat4 = new THREE.Matrix4()
+        //gate.applyMatrix(mat4)
+        //console.log(gate.matrixWorld.elements[0])
+        //     if (gate.matrixWorld.elements[0] > 4) {
+        //       // scene.remove(gate)
+        //       // gate.forEach(function (child) {
+        //       //   child.dispose()
+        //       // })
+        //       // gate = null
+        //       // gates.splice(index, 1)
+        //     }
+      });
+    }
+
+    renderer.render(scene, rollercoaster ? splineCamera : camera);
+  },
+
   addGate: function (scene) {
     var gate = createGate();
     //gate.lookAt(splineCamera.position);
@@ -90,8 +147,8 @@ module.exports = {
   },
 
   changeText: function (_text, _tag, scene) {
-    destoryText();
-    addText(_text, _tag, scene);
+    this.destoryText(scene);
+    this.addText(_text, _tag, scene);
   },
 
   isHit: function () {
@@ -105,59 +162,6 @@ module.exports = {
       return intersects[0].object.name;
     }
     return null;
-  },
-
-  render: function (scene, camera, renderer) {
-    //var time = Date.now();
-    //if (rollercoaster) {
-    var time = Date.now()
-    this.updateCamera();
-    this.updateForward();
-    if (texts.length > 0) {
-      w.detect(this.isHit());
-    }
-    tubeMesh.visible = visible;
-    forward.visible = visible;
-
-    planePP.lookAt(splineCamera.position);
-    planePP.position.copy(splineCamera.position);
-
-    //var mat4 = new THREE.Matrix4()
-    //var scalar = Math.sin(time * 0.001) + 1.0000001
-
-    //scalar = 1.1
-    //mat4.makeScale(scalar, scalar, scalar)
-    //console.log(ball.matrixWorld.elements[0])
-    // if (ball.matrixWorld.elements[0] < 4) {
-    //   ball.applyMatrix(mat4)
-    //   console.log(ball.matrixWorld.elements[0])
-    // }
-
-    expo *= 1.1
-    scalar += 1.1 * expo
-    ball.scale = new THREE.Vector3(scalar, scalar, scalar)
-
-    if (gates.length > 0) {
-      //   console.log('sss')
-      gates.forEach(function (gate, index) {
-
-        //console.log(gate instanceof THREE.Mesh)
-        //console.log(gate instanceof THREE.Object3D)
-        //mat4 = new THREE.Matrix4()
-        //gate.applyMatrix(mat4)
-        //console.log(gate.matrixWorld.elements[0])
-        //     if (gate.matrixWorld.elements[0] > 4) {
-        //       // scene.remove(gate)
-        //       // gate.forEach(function (child) {
-        //       //   child.dispose()
-        //       // })
-        //       // gate = null
-        //       // gates.splice(index, 1)
-        //     }
-      });
-    }
-
-    renderer.render(scene, rollercoaster ? splineCamera : camera);
   },
 
   updateForward: function () {
@@ -204,6 +208,20 @@ module.exports = {
     rollercoaster = !rollercoaster;
   },
 
+  swtichDirection: function () {
+    if (speed === 1) speed = -1;
+    else if (speed === -1) speed = 1;
+    else if (speed === 0) speed = speedRecord;
+  },
+
+  pause: function () {
+    speed = 0;
+  },
+
+  hideTrack: function () {
+    visible = !visible;
+  },
+
   switchSpline: function (scene) {
     scene.remove(tubeMesh);
     //TODO: find out how to dispose geometry and material
@@ -228,8 +246,5 @@ module.exports = {
     renderer.setSize(window.innerWidth, window.innerHeight);
   },
   splineCamera: splineCamera,
-  speed: speed,
-  speedRecord: speedRecord,
-  w: w,
-  visible: visible
+  w: w
 }

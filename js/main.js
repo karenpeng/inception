@@ -48,7 +48,6 @@ var func = new control(history);
 window.onkeydown = function (e) {
   //space
   if (e.which === 32) {
-    console.log('space')
     e.preventDefault();
     graphic.switchCamera();
   }
@@ -65,20 +64,19 @@ window.onkeydown = function (e) {
   //b
   if (e.which === 66) {
     e.preventDefault();
-    graphic.visible = !graphic.visible;
+    graphic.hideTrack();
   }
   //c
   if (e.which === 67) {
     e.preventDefault();
     //reverse = !reverse;
-    if (graphic.speed === 1) graphic.speed = -1;
-    else if (graphic.speed === -1) graphic.speed = 1;
-    else if (graphic.speed === 0) graphic.speed = graphic.speedRecord;
+    graphic.swtichDirection();
   }
   //d
   if (e.which === 68) {
     e.preventDefault();
-    graphic.speed = 0;
+    // graphic.speed = 0;
+    graphic.pause();
   }
   //e
   if (e.which === 69) {
