@@ -83,13 +83,14 @@ module.exports = {
       // ball.scale = new THREE.Vector3(scalar, scalar, scalar)
     if (ball !== null) {
       ball.scale.set(scalar, scalar, scalar)
-      console.log(ball.matrixWorld.elements[0])
+        //console.log(ball.matrixWorld.elements[0])
       if (ball.matrixWorld.elements[0] > 10) {
         console.log('by-bye ball')
         scene.remove(ball)
         ball.traverse(function (item) {
           if (item instanceof THREE.Mesh) {
-            item.dispose()
+            item.geometry.dispose()
+            item.material.dispose()
           }
         })
         ball = null
