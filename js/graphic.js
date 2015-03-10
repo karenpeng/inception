@@ -130,8 +130,8 @@ module.exports = {
     gates.push(gate);
   },
 
-  addText: function (_text, _tag, scene) {
-    var text = createText(_text, _tag);
+  addText: function (_text, scene) {
+    var text = createText(_text);
     text.position.copy(forward.position);
     text.matrix.lookAt(text.position, lookForward, new THREE.Vector3(0, 0, 0));
     text.rotation.setFromRotationMatrix(text.matrix, text.rotation.order);
@@ -139,17 +139,21 @@ module.exports = {
     scene.add(text);
   },
 
-  destoryText: function (scene) {
-    scene.remove(texts[texts.length - 1]);
-    texts[texts.length - 1].children.forEach(function (item) {
-      item.dispose();
+  destoryText: function (index, scene) {
+    scene.remove(texts[index])
+    texts[index].traverse(function (item) {
+      if (item instanceof THREE.Mesh) {
+        item.geometry.dispose()
+        item.material.dispose()
+      }
+      item = null
     })
-    texts[texts.length - 1] = null;
+    texts[index] = null
   },
 
-  changeText: function (_text, _tag, scene) {
-    this.destoryText(scene);
-    this.addText(_text, _tag, scene);
+  changeText: function (_text, index, scene) {
+    this.destoryText(index, scene);
+    this.addText(_text, scene);
   },
 
   isHit: function () {
@@ -215,6 +219,14 @@ module.exports = {
     else if (speed === 0) speed = speedRecord;
   },
 
+  goForward: function () {
+    speed = 1;
+  },
+
+  goBackward: function () {
+    speed = -1;
+  },
+
   pause: function () {
     speed = 0;
   },
@@ -241,7 +253,7 @@ module.exports = {
 
   onWindowResize: function (camera, renderer) {
     camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
+    //camera.updateProjectionMatrix();
     splineCamera.aspect = window.innerWidth / window.innerHeight;
     splineCamera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);

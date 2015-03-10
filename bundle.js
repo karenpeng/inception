@@ -42,7 +42,7 @@ module.exports = function () {
 
 }
 },{}],"/Users/karen/Documents/my_project/inception/js/createText.js":[function(require,module,exports){
-module.exports = function (text, tag) {
+module.exports = function (text) {
 
   require('./vendor/helvetiker_regular.js');
 
@@ -129,6 +129,41 @@ module.exports = {
   paramNumber: 0,
   history: []
 }
+},{}],"/Users/karen/Documents/my_project/inception/js/editor.js":[function(require,module,exports){
+module.exports = {
+
+  init: function () {
+    var editor1 = ace.edit("editor1");
+    editor1.setTheme("ace/theme/monokai");
+    editor1.getSession().setMode("ace/mode/javascript");
+
+    var editor2 = ace.edit("editor2");
+    editor2.setTheme("ace/theme/monokai");
+    editor2.getSession().setMode("ace/mode/javascript");
+  },
+
+  getValue: function (name) {
+    switch (name) {
+    case '1':
+      return editor1.getValue();
+    case '2':
+      return editor2.getValue();
+    }
+  },
+
+  getLineNum: function (string) {
+    var lines = editor1.session.getAllLines();
+    var stringNum = [];
+    for (var i = 0; i < lines.length; i++) {
+      if (lines[i].indexOf(string) !== -1) stringNum.push(i);
+    }
+    return stringNum;
+  },
+
+  addMarker: function () {
+
+  }
+}
 },{}],"/Users/karen/Documents/my_project/inception/js/es5.js":[function(require,module,exports){
 var graphic = require('./graphic.js');
 var stage = require('./stage.js');
@@ -141,6 +176,7 @@ module.exports = function (history) {
   //wait until hits it
   //console.log(graphic.w)
   graphic.w.on('hit', function () {
+    console.log(index)
     if (history[index].string !== undefined) {
       changeValue(history[index]);
       index++;
@@ -149,11 +185,20 @@ module.exports = function (history) {
 
   this.next = function () {
     //if (!history.length) return;
+    if (history[index + 1].string === undefined) {
+
+      graphic.goForward();
+
+    } else {
+      graphic.pause();
+    }
+
     if (history[index].string === undefined) {
       zoomIn(history[index]);
       index++;
       graphic.w.alarm = false;
     }
+
     var self = this;
     setTimeout(function () {
       self.next();
@@ -165,7 +210,7 @@ function zoomIn(history) {
   //zoomIn another world
   //graphic.zoomIn(value);
   //console.log('wat ' + Object.keys(graphic))
-  graphic.speed = 1;
+
   graphic.addText(history.value, history.string, stage.scene);
   for (var i = 0; i < 10; i++) {
     setTimeout(function () {
@@ -175,7 +220,8 @@ function zoomIn(history) {
 }
 
 function changeValue(history, callback) {
-  graphic.speed = 0;
+  graphic.pause();
+  //console.log(history.value, history.string)
   graphic.changeText(history.value, history.string, stage.scene);
   // setTimeout(function () {
   //   callback();
@@ -186,7 +232,7 @@ function changeValue(history, callback) {
 function zoomOut() {
   //get back to the outter world
   //also change the value
-  graphic.speed = -1;
+  graphic.goBackward();
 }
 },{"./graphic.js":"/Users/karen/Documents/my_project/inception/js/graphic.js","./stage.js":"/Users/karen/Documents/my_project/inception/js/stage.js"}],"/Users/karen/Documents/my_project/inception/js/event.js":[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
@@ -341,8 +387,8 @@ module.exports = {
     gates.push(gate);
   },
 
-  addText: function (_text, _tag, scene) {
-    var text = createText(_text, _tag);
+  addText: function (_text, scene) {
+    var text = createText(_text);
     text.position.copy(forward.position);
     text.matrix.lookAt(text.position, lookForward, new THREE.Vector3(0, 0, 0));
     text.rotation.setFromRotationMatrix(text.matrix, text.rotation.order);
@@ -350,17 +396,21 @@ module.exports = {
     scene.add(text);
   },
 
-  destoryText: function (scene) {
-    scene.remove(texts[texts.length - 1]);
-    texts[texts.length - 1].children.forEach(function (item) {
-      item.dispose();
+  destoryText: function (index, scene) {
+    scene.remove(texts[index])
+    texts[index].traverse(function (item) {
+      if (item instanceof THREE.Mesh) {
+        item.geometry.dispose()
+        item.material.dispose()
+      }
+      item = null
     })
-    texts[texts.length - 1] = null;
+    texts[index] = null
   },
 
-  changeText: function (_text, _tag, scene) {
-    this.destoryText(scene);
-    this.addText(_text, _tag, scene);
+  changeText: function (_text, index, scene) {
+    this.destoryText(index, scene);
+    this.addText(_text, scene);
   },
 
   isHit: function () {
@@ -426,6 +476,14 @@ module.exports = {
     else if (speed === 0) speed = speedRecord;
   },
 
+  goForward: function () {
+    speed = 1;
+  },
+
+  goBackward: function () {
+    speed = -1;
+  },
+
   pause: function () {
     speed = 0;
   },
@@ -452,7 +510,7 @@ module.exports = {
 
   onWindowResize: function (camera, renderer) {
     camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
+    //camera.updateProjectionMatrix();
     splineCamera.aspect = window.innerWidth / window.innerHeight;
     splineCamera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -465,7 +523,7 @@ var parse = require('./parse.js');
 //var incept = require('./incept.js');
 var graphic = require('./graphic.js');
 
-//require('./editor.js').init();
+require('./editor.js').init();
 
 function fibonacci(num) {
   if (num === 0) return 0;
@@ -482,7 +540,7 @@ var history = parse(test).history;
 
 history.forEach(function (item) {
   //console.log('behold: ' + item[Object.keys(item)])
-  //console.log(item.value + ' ' + item.string)
+  console.log(item.value + ' ' + item.string)
 })
 
 var control = require('./es5.js');
@@ -552,7 +610,7 @@ window.onkeydown = function (e) {
     func.next();
   }
 }
-},{"./es5.js":"/Users/karen/Documents/my_project/inception/js/es5.js","./graphic.js":"/Users/karen/Documents/my_project/inception/js/graphic.js","./parse.js":"/Users/karen/Documents/my_project/inception/js/parse.js","./stage.js":"/Users/karen/Documents/my_project/inception/js/stage.js"}],"/Users/karen/Documents/my_project/inception/js/parse.js":[function(require,module,exports){
+},{"./editor.js":"/Users/karen/Documents/my_project/inception/js/editor.js","./es5.js":"/Users/karen/Documents/my_project/inception/js/es5.js","./graphic.js":"/Users/karen/Documents/my_project/inception/js/graphic.js","./parse.js":"/Users/karen/Documents/my_project/inception/js/parse.js","./stage.js":"/Users/karen/Documents/my_project/inception/js/stage.js"}],"/Users/karen/Documents/my_project/inception/js/parse.js":[function(require,module,exports){
 var falafel = require('falafel');
 var inspect = require('object-inspect');
 

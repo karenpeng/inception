@@ -2,7 +2,7 @@ var parse = require('./parse.js');
 //var incept = require('./incept.js');
 var graphic = require('./graphic.js');
 
-//require('./editor.js').init();
+require('./editor.js').init();
 
 function fibonacci(num) {
   if (num === 0) return 0;
@@ -19,7 +19,7 @@ var history = parse(test).history;
 
 history.forEach(function (item) {
   //console.log('behold: ' + item[Object.keys(item)])
-  //console.log(item.value + ' ' + item.string)
+  console.log(item.value + ' ' + item.string)
 })
 
 var control = require('./es5.js');

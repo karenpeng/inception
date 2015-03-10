@@ -1,4 +1,4 @@
-module.exports = function (text, tag) {
+module.exports = function (text) {
 
   require('./vendor/helvetiker_regular.js');
 
