@@ -1,0 +1,164 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/usr/local/bin/node',
+1 verbose cli   '/usr/local/bin/npm',
+1 verbose cli   'install',
+1 verbose cli   '-g',
+1 verbose cli   'planetproto@latest' ]
+2 info using npm@1.4.28
+3 info using node@v0.10.35
+4 verbose cache add [ 'planetproto@latest', null ]
+5 verbose cache add name=undefined spec="planetproto@latest" args=["planetproto@latest",null]
+6 verbose parsed url { protocol: null,
+6 verbose parsed url   slashes: null,
+6 verbose parsed url   auth: null,
+6 verbose parsed url   host: null,
+6 verbose parsed url   port: null,
+6 verbose parsed url   hostname: null,
+6 verbose parsed url   hash: null,
+6 verbose parsed url   search: null,
+6 verbose parsed url   query: null,
+6 verbose parsed url   pathname: 'planetproto@latest',
+6 verbose parsed url   path: 'planetproto@latest',
+6 verbose parsed url   href: 'planetproto@latest' }
+7 verbose cache add name="planetproto" spec="latest" args=["planetproto","latest"]
+8 verbose parsed url { protocol: null,
+8 verbose parsed url   slashes: null,
+8 verbose parsed url   auth: null,
+8 verbose parsed url   host: null,
+8 verbose parsed url   port: null,
+8 verbose parsed url   hostname: null,
+8 verbose parsed url   hash: null,
+8 verbose parsed url   search: null,
+8 verbose parsed url   query: null,
+8 verbose parsed url   pathname: 'latest',
+8 verbose parsed url   path: 'latest',
+8 verbose parsed url   href: 'latest' }
+9 verbose addNamed [ 'planetproto', 'latest' ]
+10 verbose addNamed [ null, null ]
+11 silly lockFile 32cf0a33-planetproto-latest planetproto@latest
+12 verbose lock planetproto@latest /Users/karen/.npm/32cf0a33-planetproto-latest.lock
+13 info addNameTag [ 'planetproto', 'latest' ]
+14 verbose request where is /planetproto
+15 verbose request registry https://registry.npmjs.org/
+16 verbose request id e781a894b5e1d2f6
+17 verbose url raw /planetproto
+18 verbose url resolving [ 'https://registry.npmjs.org/', './planetproto' ]
+19 verbose url resolved https://registry.npmjs.org/planetproto
+20 verbose request where is https://registry.npmjs.org/planetproto
+21 info trying registry request attempt 1 at 01:44:17
+22 http GET https://registry.npmjs.org/planetproto
+23 http 200 https://registry.npmjs.org/planetproto
+24 silly registry.get cb [ 200,
+24 silly registry.get   { date: 'Thu, 12 Mar 2015 05:44:16 GMT',
+24 silly registry.get     server: 'CouchDB/1.5.0 (Erlang OTP/R16B03)',
+24 silly registry.get     etag: '"969JN4T3RD5ANE299LFT0WIR8"',
+24 silly registry.get     'content-type': 'application/json',
+24 silly registry.get     'cache-control': 'max-age=60',
+24 silly registry.get     'content-length': '18516',
+24 silly registry.get     'accept-ranges': 'bytes',
+24 silly registry.get     via: '1.1 varnish',
+24 silly registry.get     age: '0',
+24 silly registry.get     'x-served-by': 'cache-jfk1028-JFK',
+24 silly registry.get     'x-cache': 'MISS',
+24 silly registry.get     'x-cache-hits': '0',
+24 silly registry.get     'x-timer': 'S1426139056.431286,VS0,VE46',
+24 silly registry.get     vary: 'Accept',
+24 silly registry.get     'keep-alive': 'timeout=10, max=50',
+24 silly registry.get     connection: 'Keep-Alive' } ]
+25 verbose addNamed [ 'planetproto', '0.6.0' ]
+26 verbose addNamed [ '0.6.0', '0.6.0' ]
+27 silly lockFile f8003d89-planetproto-0-6-0 planetproto@0.6.0
+28 verbose lock planetproto@0.6.0 /Users/karen/.npm/f8003d89-planetproto-0-6-0.lock
+29 silly lockFile 605b2bcf-lanetproto-planetproto-0-6-0-tgz https://registry.npmjs.org/planetproto/-/planetproto-0.6.0.tgz
+30 verbose lock https://registry.npmjs.org/planetproto/-/planetproto-0.6.0.tgz /Users/karen/.npm/605b2bcf-lanetproto-planetproto-0-6-0-tgz.lock
+31 verbose addRemoteTarball [ 'https://registry.npmjs.org/planetproto/-/planetproto-0.6.0.tgz',
+31 verbose addRemoteTarball   '0c58bf399848118f9638a1cea76a153734567b64' ]
+32 info retry fetch attempt 1 at 01:44:18
+33 verbose fetch to= /var/folders/ql/625wlw4n07v_n3vwzjvxzg8m0000gn/T/npm-27884-2tadEU2u/registry.npmjs.org/planetproto/-/planetproto-0.6.0.tgz
+34 http GET https://registry.npmjs.org/planetproto/-/planetproto-0.6.0.tgz
+35 http 200 https://registry.npmjs.org/planetproto/-/planetproto-0.6.0.tgz
+36 silly lockFile 605b2bcf-lanetproto-planetproto-0-6-0-tgz https://registry.npmjs.org/planetproto/-/planetproto-0.6.0.tgz
+37 silly lockFile 605b2bcf-lanetproto-planetproto-0-6-0-tgz https://registry.npmjs.org/planetproto/-/planetproto-0.6.0.tgz
+38 silly lockFile f8003d89-planetproto-0-6-0 planetproto@0.6.0
+39 silly lockFile f8003d89-planetproto-0-6-0 planetproto@0.6.0
+40 silly lockFile 32cf0a33-planetproto-latest planetproto@latest
+41 silly lockFile 32cf0a33-planetproto-latest planetproto@latest
+42 silly resolved [ { name: 'planetproto',
+42 silly resolved     version: '0.6.0',
+42 silly resolved     description: 'A Workshop for understanding JavaScript prototypes',
+42 silly resolved     main: 'index.js',
+42 silly resolved     scripts: { test: 'echo "Error: no test specified" && exit 1' },
+42 silly resolved     bin: { planetproto: 'planetproto.js' },
+42 silly resolved     repository: { type: 'git', url: 'git://github.com/sporto/planetproto.git' },
+42 silly resolved     keywords:
+42 silly resolved      [ 'workshop',
+42 silly resolved        'workshopper',
+42 silly resolved        'guide',
+42 silly resolved        'prototypes',
+42 silly resolved        'inheritance',
+42 silly resolved        'tutorial',
+42 silly resolved        'lesson' ],
+42 silly resolved     author: { name: 'Sebastian Porto' },
+42 silly resolved     license: 'MIT',
+42 silly resolved     bugs: { url: 'https://github.com/sporto/planetproto/issues' },
+42 silly resolved     homepage: 'https://github.com/sporto/planetproto',
+42 silly resolved     dependencies:
+42 silly resolved      { chai: '~1.9.1',
+42 silly resolved        'colors-tmpl': '~0.1.0',
+42 silly resolved        underscore: '~1.6.0',
+42 silly resolved        workshopper: '^2.3.1',
+42 silly resolved        'workshopper-boilerplate': '^1.1.0',
+42 silly resolved        'workshopper-exercise': '^2.3.0',
+42 silly resolved        'workshopper-wrappedexec': '~0.1.1' },
+42 silly resolved     devDependencies: { mocha: '~1.19.0' },
+42 silly resolved     gitHead: '9dc227eb17cf167b563a6ca63fb0a22ffa413e5e',
+42 silly resolved     _id: 'planetproto@0.6.0',
+42 silly resolved     _shasum: '0c58bf399848118f9638a1cea76a153734567b64',
+42 silly resolved     _from: 'planetproto@latest',
+42 silly resolved     _npmVersion: '2.1.10',
+42 silly resolved     _nodeVersion: '0.10.33',
+42 silly resolved     _npmUser: { name: 'sporto', email: 'sebasporto@gmail.com' },
+42 silly resolved     maintainers: [ [Object] ],
+42 silly resolved     dist:
+42 silly resolved      { shasum: '0c58bf399848118f9638a1cea76a153734567b64',
+42 silly resolved        tarball: 'http://registry.npmjs.org/planetproto/-/planetproto-0.6.0.tgz' },
+42 silly resolved     directories: {},
+42 silly resolved     _resolved: 'https://registry.npmjs.org/planetproto/-/planetproto-0.6.0.tgz' } ]
+43 info install planetproto@0.6.0 into /usr/local/lib
+44 info installOne planetproto@0.6.0
+45 verbose lib/node_modules/planetproto unbuild
+46 verbose tar unpack /Users/karen/.npm/planetproto/0.6.0/package.tgz
+47 silly lockFile c7a60e66-cal-lib-node-modules-planetproto tar:///usr/local/lib/node_modules/planetproto
+48 verbose lock tar:///usr/local/lib/node_modules/planetproto /Users/karen/.npm/c7a60e66-cal-lib-node-modules-planetproto.lock
+49 silly lockFile 8e2648ec-pm-planetproto-0-6-0-package-tgz tar:///Users/karen/.npm/planetproto/0.6.0/package.tgz
+50 verbose lock tar:///Users/karen/.npm/planetproto/0.6.0/package.tgz /Users/karen/.npm/8e2648ec-pm-planetproto-0-6-0-package-tgz.lock
+51 silly gunzTarPerm modes [ '755', '644' ]
+52 error Error: EACCES, mkdir '/usr/local/lib/node_modules/planetproto'
+52 error  { [Error: EACCES, mkdir '/usr/local/lib/node_modules/planetproto']
+52 error   errno: 3,
+52 error   code: 'EACCES',
+52 error   path: '/usr/local/lib/node_modules/planetproto',
+52 error   fstream_type: 'Directory',
+52 error   fstream_path: '/usr/local/lib/node_modules/planetproto',
+52 error   fstream_class: 'DirWriter',
+52 error   fstream_stack:
+52 error    [ '/Users/karen/.nvm/v0.10.35/lib/node_modules/npm/node_modules/fstream/lib/dir-writer.js:36:23',
+52 error      '/Users/karen/.nvm/v0.10.35/lib/node_modules/npm/node_modules/mkdirp/index.js:46:53',
+52 error      'Object.oncomplete (fs.js:108:15)' ] }
+53 error Please try running this command again as root/Administrator.
+54 error System Darwin 14.1.0
+55 error command "/usr/local/bin/node" "/usr/local/bin/npm" "install" "-g" "planetproto@latest"
+56 error cwd /Users/karen/Documents/my_project/inception/js
+57 error node -v v0.10.35
+58 error npm -v 1.4.28
+59 error path /usr/local/lib/node_modules/planetproto
+60 error fstream_path /usr/local/lib/node_modules/planetproto
+61 error fstream_type Directory
+62 error fstream_class DirWriter
+63 error code EACCES
+64 error errno 3
+65 error stack Error: EACCES, mkdir '/usr/local/lib/node_modules/planetproto'
+66 error fstream_stack /Users/karen/.nvm/v0.10.35/lib/node_modules/npm/node_modules/fstream/lib/dir-writer.js:36:23
+66 error fstream_stack /Users/karen/.nvm/v0.10.35/lib/node_modules/npm/node_modules/mkdirp/index.js:46:53
+66 error fstream_stack Object.oncomplete (fs.js:108:15)
+67 verbose exit [ 3, true ]

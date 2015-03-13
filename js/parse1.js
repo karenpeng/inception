@@ -37,17 +37,19 @@ function wtf(src) {
       //   + '_exit(' + id + ');' + '}'
       // )
       node.body.update('yeild {args: ' + node.source() + '};\n' + node.body.body)
-      nodes[id] = node
-      id++
-    } else if (node.type === 'ReturnStatement') {
+        // nodes[id] = node
+        // id++
+    }
+
+    if (node.parent && node.parent.type === 'ReturnStatement') {
       //console.log('??? ' + node.source());
       // node.argument.update(
       //   '_exit(' + id + ',' + node.argument.source() + ', "' + node.source() + '")'
       // );
       //console.log(node.source())
-      node.update('return yield* ' + node.source().replace('return', ''))
-      nodes[id] = node
-      id++
+      node.update('return yield* ' + node.source())
+        // nodes[id] = node
+        // id++
     }
   }).toString()
 
@@ -73,6 +75,7 @@ function wtf(src) {
   //   args = [].slice.call(args).map(inspect)
   //   stack.push(id)
   // }
+  console.log(out)
   return plus
 }
 
@@ -84,4 +87,5 @@ function fibonacci(num) {
 
 var test = wtf(fibonacci.toString())
 
-test()
+console.log('wat')
+console.log(test)
