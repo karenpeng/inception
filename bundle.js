@@ -118,7 +118,7 @@ module.exports = function (text) {
     })
     //new THREE.MeshNormalMaterial
   );
-  textMesh1.name = tag;
+  //textMesh1.name = tag;
 
   return textMesh1;
 
@@ -178,25 +178,34 @@ module.exports = function (history) {
   graphic.w.on('hit', function () {
     console.log(index)
     if (history[index].string !== undefined) {
-      changeValue(history[index]);
+      //graphic.pause()
+      //graphic.destoryText(index - 1);
+      graphic.goBackward()
+      graphic.changeText(history.value, index, stage.scene);
       index++;
     }
   });
 
   this.next = function () {
     //if (!history.length) return;
-    if (history[index + 1].string === undefined) {
+    // if (history[index + 1].string === undefined) {
+    //   graphic.goForward();
 
-      graphic.goForward();
-
-    } else {
-      graphic.pause();
-    }
+    // } else {
+    //   graphic.pause();
+    // }
 
     if (history[index].string === undefined) {
-      zoomIn(history[index]);
+      graphic.addText(history[index].value, stage.scene);
+      graphic.goForward()
       index++;
       graphic.w.alarm = false;
+
+    }else{
+      //zoomIn(history[index].string)
+      //graphic.pause()
+      graphic.addText(history[index].string, stage.scene)
+      //graphic.goBackward()
     }
 
     var self = this;
@@ -206,34 +215,27 @@ module.exports = function (history) {
   }
 }
 
-function zoomIn(history) {
-  //zoomIn another world
-  //graphic.zoomIn(value);
-  //console.log('wat ' + Object.keys(graphic))
+// addText
 
-  graphic.addText(history.value, history.string, stage.scene);
-  for (var i = 0; i < 10; i++) {
-    setTimeout(function () {
-      graphic.addGate(stage.scene);
-    }, i * 400);
-  }
-}
+// addText
 
-function changeValue(history, callback) {
-  graphic.pause();
-  //console.log(history.value, history.string)
-  graphic.changeText(history.value, history.string, stage.scene);
-  // setTimeout(function () {
-  //   callback();
-  // }, 2000);
-  zoomOut();
-}
+// addReturn
 
-function zoomOut() {
-  //get back to the outter world
-  //also change the value
-  graphic.goBackward();
-}
+// hitReturn
+
+// comeback
+
+// hit the last one
+
+// stop
+
+// change it
+
+// comeback
+
+// destory it
+
+
 },{"./graphic.js":"/Users/karen/Documents/my_project/inception/js/graphic.js","./stage.js":"/Users/karen/Documents/my_project/inception/js/stage.js"}],"/Users/karen/Documents/my_project/inception/js/event.js":[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('inherits');
@@ -611,6 +613,14 @@ window.onkeydown = function (e) {
   }
 }
 },{"./editor.js":"/Users/karen/Documents/my_project/inception/js/editor.js","./es5.js":"/Users/karen/Documents/my_project/inception/js/es5.js","./graphic.js":"/Users/karen/Documents/my_project/inception/js/graphic.js","./parse.js":"/Users/karen/Documents/my_project/inception/js/parse.js","./stage.js":"/Users/karen/Documents/my_project/inception/js/stage.js"}],"/Users/karen/Documents/my_project/inception/js/parse.js":[function(require,module,exports){
+// function fibonacci(num) {
+// _enter(3,arguments);
+// if (num === 0) return _exit(0,0, "return 0;");;
+// if (num === 1) return _exit(1,1, "return 1;");;
+// return _exit(2,fibonacci(num - 1) + fibonacci(num - 2),
+// "return fibonacci(num - 1) + fibonacci(num - 2);");_exit(3);}
+
+
 var falafel = require('falafel');
 var inspect = require('object-inspect');
 

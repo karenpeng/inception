@@ -74,7 +74,7 @@ module.exports = function (text) {
     })
     //new THREE.MeshNormalMaterial
   );
-  textMesh1.name = tag;
+  //textMesh1.name = tag;
 
   return textMesh1;
 

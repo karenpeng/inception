@@ -5,8 +5,8 @@
 //   if (n === 0) return 0
 //   if (n === 1) return 1
 //   return (
-//     yield * fibonacci(n - 1)) + (
-//     yield * fibonacci(n - 2))
+//     a = yield * fibonacci(n - 1)) + (
+//     b = yield * fibonacci(n - 2))
 // }
 
 var falafel = require('falafel')
@@ -20,10 +20,10 @@ function wtf(src) {
   var _obj = require('./dataStructure.js')
 
   var out = falafel(src, function (node) {
-    if (node.type === 'FunctionDeclaration') {
-      _obj.functionName = node.id.name
-      _obj.paramNumber = node.params.length
-    }
+    // if (node.type === 'FunctionDeclaration') {
+    //   _obj.functionName = node.id.name
+    //   _obj.paramNumber = node.params.length
+    // }
 
     if (node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression') {
       //console.log('!!! ' + node.source());
