@@ -2,69 +2,100 @@ var graphic = require('./graphic.js');
 var stage = require('./stage.js');
 //var w = graphic.Widget();
 
-module.exports = function (history) {
-  var index = 0;
-  var history = history;
+module.exports = Controller;
 
-  //wait until hits it
-  //console.log(graphic.w)
-  graphic.w.on('hit', function () {
-    console.log(index)
-    if (history[index].string !== undefined) {
+function Controller(_history) {
+  var index = 0;
+  var history = _history;
+  var flag = 0;
+//}
+
+graphic.w.on('hit', function(){
+  console.log(flag)
+   if (flag === 1) {
+
       //graphic.pause()
       //graphic.destoryText(index - 1);
+      graphic.destoryText(0, stage.scene)
       graphic.goBackward()
-      graphic.changeText(history.value, index, stage.scene);
-      index++;
+      flag = 2
     }
+
+    if(flag ===2){
+      graphic.pause()
+      graphic.changeText(history.value, 0, stage.scene);
+      flag = 0;
+
+      setTimeout(function () {
+        next();
+      }, 1000);
+    }
+
   });
 
-  this.next = function () {
-    //if (!history.length) return;
-    // if (history[index + 1].string === undefined) {
-    //   graphic.goForward();
 
-    // } else {
-    //   graphic.pause();
-    // }
+  function next(){
 
-    if (history[index].string === undefined) {
-      graphic.addText(history[index].value, stage.scene);
+    if(history.length < 1) return;
+
+    var task = history.shift()
+
+    if (task.string === undefined) {
+      graphic.addText(task.value, stage.scene);
       graphic.goForward()
-      index++;
-      graphic.w.alarm = false;
+      graphic.w.alarm = true;
+      setTimeout(function () {
+        next();
+      }, 1000);
 
     }else{
       //zoomIn(history[index].string)
       //graphic.pause()
-      graphic.addText(history[index].string, stage.scene)
+      graphic.addText(task.string, stage.scene)
+      flag = 1
+      console.log('ds '+flag)
+      graphic.w.alarm = false;
       //graphic.goBackward()
     }
-
-    var self = this;
-    setTimeout(function () {
-      self.next();
-    }, 1000);
   }
+
+  next();
 }
 
-// addText
 
-// addText
+// Controller.prototype.next = function () {
+//     //if (!history.length) return;
+//     // if (history[index + 1].string === undefined) {
+//     //   graphic.goForward();
 
-// addReturn
+//     // } else {
+//     //   graphic.pause();
+//     // }
+//     if(this.history.length < 1) return;
 
-// hitReturn
 
-// comeback
 
-// hit the last one
+//     var task = this.history.shift()
 
-// stop
+//     if (task.string === undefined) {
+//       graphic.addText(task.value, stage.scene);
+//       graphic.goForward()
+//       //graphic.w.alarm = false;
+//       var self = this;
+//       setTimeout(function () {
+//         self.next();
+//       }, 1000);
 
-// change it
+//     }else{
+//       //zoomIn(history[index].string)
+//       //graphic.pause()
+//       graphic.addText(task.string, stage.scene)
+//       this.flag = 1
+//       console.log('ds '+this.flag)
+//       //graphic.w.alarm = false;
+//       //graphic.goBackward()
+//     }
 
-// comeback
 
-// destory it
+//   }
 

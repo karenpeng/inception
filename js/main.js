@@ -23,7 +23,9 @@ history.forEach(function (item) {
 })
 
 var control = require('./es5.js');
-var func = new control(history);
+//var func = new control(history);
+
+//func.next()
 
 // window.onkeydown = function (e) {
 //   //enter
@@ -86,6 +88,7 @@ window.onkeydown = function (e) {
   //enter
   if (e.which === 13) {
     e.preventDefault();
-    func.next();
+    //func.next();
+    control(history)
   }
 }

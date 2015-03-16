@@ -11,7 +11,7 @@ function Widget() {
 Widget.prototype.detect = function (something) {
   if (something !== null && !this.alarm) {
     this.alarm = true;
-    console.log('ouch!')
+    //console.log('ouch!')
     this.emit('hit');
   }
 };

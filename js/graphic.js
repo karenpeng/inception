@@ -23,6 +23,9 @@ var scalar = 1;
 var expo = 1;
 var Widget = require('./event.js');
 var w = Widget();
+// var es5 = require('./es5.js')
+// w.on('hit', es5.wat)
+var isHitOrNot = null;
 
 module.exports = {
   init: function (scene) {
@@ -62,6 +65,8 @@ module.exports = {
 
   },
 
+
+
   render: function (scene, camera, renderer) {
     //var time = Date.now();
     //if (rollercoaster) {
@@ -70,6 +75,7 @@ module.exports = {
     this.updateForward();
     if (texts.length > 0) {
       w.detect(this.isHit());
+      isHitOrNot = this.isHit();
     }
     tubeMesh.visible = visible;
     forward.visible = visible;
@@ -140,6 +146,7 @@ module.exports = {
   },
 
   destoryText: function (index, scene) {
+    var index = texts.length-1
     scene.remove(texts[index])
     texts[index].traverse(function (item) {
       if (item instanceof THREE.Mesh) {
@@ -148,10 +155,11 @@ module.exports = {
       }
       item = null
     })
-    texts[index] = null
+    texts.pop()
   },
 
   changeText: function (_text, index, scene) {
+    var index = texts.length-1
     this.destoryText(index, scene);
     this.addText(_text, scene);
   },
@@ -259,5 +267,6 @@ module.exports = {
     renderer.setSize(window.innerWidth, window.innerHeight);
   },
   splineCamera: splineCamera,
-  w: w
+  w: w,
+  isHitOrNot: isHitOrNot
 }
