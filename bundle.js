@@ -141,67 +141,65 @@ function Controller(_history) {
   var history = _history;
   var flag = 0;
   var task;
-//}
+  //}
 
-graphic.w.on('hit', function(){
-  //console.log(flag)
-   if (flag === 1) {
-      console.log('go back!')
-      //graphic.pause()
-      //graphic.destoryText(index - 1);
-      graphic.destoryText(0, stage.scene)
-      graphic.goBackward()
-      //setTimeout(function(){
-      flag = 2
-      graphic.w.alarm = false;
-      return
-      //}, 100)
+  graphic.w.on('hit', function () {
+        //console.log(flag)
+        if (flag === 1) {
+          console.log('go back!')
+            //graphic.pause()
+            //graphic.destoryText(index - 1);
+          graphic.destoryText(0, stage.scene)
+          graphic.goBackward()
+            //setTimeout(function(){
+          flag = 2
+          graphic.w.alarm = false;
+          return
+          //}, 100)
 
-    }
+        }
 
-    if(flag ===2){
-      console.log('ss')
-      graphic.pause()
-      graphic.changeText(task.value, task.value, 0, stage.scene);
-      flag = 0;
-      //console.log(flag)
-
-      setTimeout(function () {
-        next();
-      }, 1000);
-    }
+        if (flag === 2) {
+          console.log('ss')
+          graphic.pause()
+          graphic.changeText(task.value, task.value, 0, stage.scene);
+          flag = 0;
+          setTimeout(function () {
+            next();
+          }, 2000);
+        }
 
   });
 
+  function next() {
 
-  function next(){
-
-    if(history.length < 1) return;
+    //wrong... you should at least wait untill it hits the final result 1
+    if (history.length < 1) return;
 
     task = history.shift()
+    graphic.goForward();
 
     if (task.string === undefined) {
+
       graphic.addText(task.value, task.value, stage.scene);
-      graphic.goForward()
       graphic.w.alarm = true;
       setTimeout(function () {
         next();
-      }, 2000);
+      }, 1200);
 
-    }else{
+    } else {
       //zoomIn(history[index].string)
       //graphic.pause()
       graphic.addText(task.string, task.value, stage.scene)
-      flag = 1
-      console.log('ds '+flag)
+      flag = 1;
       graphic.w.alarm = false;
-      //graphic.goBackward()
+      console.log(task.string)
+        //graphic.goBackward()
     }
   }
 
   next();
 }
-
 
 // Controller.prototype.next = function () {
 //     //if (!history.length) return;
@@ -212,8 +210,6 @@ graphic.w.on('hit', function(){
 //     //   graphic.pause();
 //     // }
 //     if(this.history.length < 1) return;
-
-
 
 //     var task = this.history.shift()
 
@@ -236,10 +232,7 @@ graphic.w.on('hit', function(){
 //       //graphic.goBackward()
 //     }
 
-
 //   }
-
-
 },{"./graphic.js":"/Users/karen/Documents/my_project/inception/js/graphic.js","./stage.js":"/Users/karen/Documents/my_project/inception/js/stage.js"}],"/Users/karen/Documents/my_project/inception/js/event.js":[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('inherits');
@@ -253,10 +246,10 @@ function Widget() {
 
 Widget.prototype.detect = function (something) {
 
-  if(!this.alarm){
-  console.log(something, this.alarm)
-  //console.log(this.alarm)
- }
+  //  if(!this.alarm){
+  //  console.log(something, this.alarm)
+  //  //console.log(this.alarm)
+  // }
   if (something !== null && !this.alarm) {
     console.log('ouch!')
     this.alarm = true;
@@ -271,9 +264,9 @@ require('./vendor/CurveExtras.js');
 var createGate = require('./createGate.js');
 var createText = require('./createText.js');
 
-var scale, splineCamera,
+var scale, splineCamera, inBetweenLove,
   splines, tube, material, tubeMesh,
-  binormal, normal, lookForward,
+  binormal, normal, lookForward, lookForwardForLove,
   forward, raycaster,
   rollercoaster, splineIndex;
 var planePP;
@@ -284,7 +277,8 @@ var speedRecord = speed;
 var cameraCounter = 0;
 var loopTime = 10000;
 var texts = [];
-var dir;
+var ctrls = [];
+//var dir;
 var ball = null;
 var gates = [];
 var scalar = 1;
@@ -292,6 +286,7 @@ var expo = 1;
 var Widget = require('./event.js');
 var w = Widget();
 var aheadOfTime = 800;
+var aheadOfLove = 200;
 // var es5 = require('./es5.js')
 // w.on('hit', es5.wat)
 var isHitOrNot = null;
@@ -314,6 +309,17 @@ module.exports = {
     forward.position.copy(splineCamera.position);
     scene.add(forward);
 
+    inBetweenLove = new THREE.Object3D()
+    inBetweenLove.position.copy(splineCamera.position)
+
+    var test = new THREE.Mesh(new THREE.SphereGeometry(2), new THREE.MeshBasicMaterial({
+      color: 0xffffff
+    }));
+    test.position.copy(splineCamera.position)
+    test.scale.set(0.5, 0.5, 0.5)
+    inBetweenLove.add(test)
+    scene.add(inBetweenLove)
+
     splines = require('./splines.js');
 
     tube = new THREE.TubeGeometry(splines[splineIndex], 100, 1, 4, true);
@@ -323,7 +329,7 @@ module.exports = {
     scene.add(tubeMesh);
 
     planePP = createGate();
-    scene.add(planePP);
+    //scene.add(planePP);
 
     binormal = new THREE.Vector3();
     normal = new THREE.Vector3();
@@ -334,14 +340,13 @@ module.exports = {
 
   },
 
-
-
   render: function (scene, camera, renderer) {
     //var time = Date.now();
     //if (rollercoaster) {
     var time = Date.now()
     this.updateCamera();
     this.updateForward();
+    this.updateLove();
     if (texts.length > 0) {
       w.detect(this.isHit());
       isHitOrNot = this.isHit();
@@ -405,17 +410,56 @@ module.exports = {
     gates.push(gate);
   },
 
-  addText: function (_text, tag, scene) {
+  addText: function (_text, tag, scene, flag) {
     var text = createText(_text, tag);
-    text.position.copy(forward.position);
+    var ctrl = new THREE.Object3D();
+    // var wat = forward.position;
+    // wat = wat.sub(splineCamera.position);
+    if (speed === 1) {
+      text.position.copy(forward.position);
+    } else {
+      text.position.copy(inBetweenLove.position);
+    }
     text.matrix.lookAt(text.position, lookForward, new THREE.Vector3(0, 0, 0));
     text.rotation.setFromRotationMatrix(text.matrix, text.rotation.order);
+
+    ctrl.position.copy(inBetweenLove.position)
+      //ctrl.matrix.lookAt(ctrl.position, lookForwardForLove, new THREE.Vector3(0, 0, 0));
+    ctrl.rotation.setFromRotationMatrix(ctrl.matrix, ctrl.rotation.order);
+    // var tempPosition = new THREE.Vector3();
+    // tempPosition = forward.position;
+    // console.log(splineCamera.position.x, splineCamera.position.y, splineCamera.position.z)
+    // console.log(forward.position.x, forward.position.y, forward.position.z)
+    // tempPosition = tempPosition.lerp(splineCamera.position, 0.2);
+    // console.log(tempPosition.x, tempPosition.y, tempPosition.z)
+    //   //tempPosition.matrix.lookAt(tempPosition.position, lookForward, new THREE.Vector3(0, 0, 0));
+    //   //tempPosition.rotation.setFromRotationMatrix(tempPosition.matrix, tempPosition.rotation.order);
+    //   //tempPosition=
+    // ctrl.position.copy(tempPosition);
+    // ctrl.matrix.lookAt(ctrl.position, lookForward, new THREE.Vector3(0, 0, 0));
+    // ctrl.rotation.setFromRotationMatrix(ctrl.matrix, ctrl.rotation.order);
+
+    // ctrl.add(text);
+    //texts.push(text);
+    ctrls.push(ctrl);
+    // scene.add(ctrl);
     texts.push(text);
     scene.add(text);
   },
 
   destoryText: function (_index, scene) {
-    var index = texts.length-1
+    // var index = texts.length-1
+    // scene.remove(texts[index])
+    // texts[index].traverse(function (item) {
+    //   if (item instanceof THREE.Mesh) {
+    //     item.geometry.dispose()
+    //     item.material.dispose()
+    //   }
+    //   item = null
+    // })
+    // texts.pop()
+    var index = texts.length - 1
+      //console.log('remvoing ' + texts[index])
     scene.remove(texts[index])
     texts[index].traverse(function (item) {
       if (item instanceof THREE.Mesh) {
@@ -424,11 +468,15 @@ module.exports = {
       }
       item = null
     })
+    ctrls[index].traverse(function (item) {
+      item = null
+    })
     texts.pop()
+    ctrls.pop()
   },
 
   changeText: function (_text, tag, index, scene) {
-    var index = texts.length-1
+    var index = ctrls.length - 1
     this.destoryText(index, scene);
     this.addText(_text, tag, scene);
   },
@@ -444,15 +492,17 @@ module.exports = {
     // }else{
     //   ray = new THREE.Vector3(0,0,0)
     // }
-     //ray = idonu.multiplyScalar(-1);
+    //ray = idonu.multiplyScalar(-1);
     //console.log(texts[texts.length - 1] instanceof THREE.Mesh)
     //console.log(texts.length)
     //console.log(texts.length)
-    if(speed ==1)
+    //if(speed ==1)
     var obj = [texts[texts.length - 1], texts[texts.length - 1]];
     //if(speed ===-1)
-    else var obj = [texts[texts.length - 2], texts[texts.length - 2]]
-    raycaster.ray.set(splineCamera.position, ray);
+    //else var obj = [texts[texts.length - 2], texts[texts.length - 2]]
+    //var obj = [ctrls[ctrls.length - 1], ctrls[ctrls.length - 1]];
+    //raycaster.ray.set(splineCamera.position, ray);
+    raycaster.ray.set(inBetweenLove.position, ray);
     var intersects = raycaster.intersectObjects(obj, true);
     if (intersects.length > 0 && intersects[0].distance <= 100) {
       return intersects[0].object.name;
@@ -474,6 +524,21 @@ module.exports = {
 
   },
 
+  updateLove: function () {
+    var tForward = ((cameraCounter + aheadOfLove) % loopTime) / loopTime;
+    var pos = tube.parameters.path.getPointAt(tForward);
+    pos.multiplyScalar(scale);
+
+    idonu = tube.parameters.path.getTangentAt(tForward)
+    inBetweenLove.position.copy(pos);
+
+    lookForwardForLove = tube.parameters.path.getPointAt((tForward + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
+
+    inBetweenLove.matrix.lookAt(inBetweenLove.position, lookForwardForLove, normal);
+    inBetweenLove.rotation.setFromRotationMatrix(inBetweenLove.matrix, inBetweenLove.rotation.order);
+
+  },
+
   updateCamera: function () {
     if (speed === 1) {
       cameraCounter += 10;
@@ -490,8 +555,8 @@ module.exports = {
     var pos = tube.parameters.path.getPointAt(t);
     pos.multiplyScalar(scale);
 
-    dir = tube.parameters.path.getTangent(t);
-    idonu = tube.parameters.path.getTangentAt(t)
+    var dir = tube.parameters.path.getTangent(t);
+    //idonu = tube.parameters.path.getTangentAt(t)
 
     splineCamera.position.copy(pos);
     var lookAt = tube.parameters.path.getPointAt((t + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
@@ -567,7 +632,7 @@ function fibonacci(num) {
   return fibonacci(num - 1) + fibonacci(num - 2);
 }
 
-var call = 'fibonacci(3)';
+var call = 'fibonacci(2)';
 
 var test = fibonacci.toString().concat(call);
 var history = parse(test).history;
