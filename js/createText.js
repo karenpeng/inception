@@ -1,4 +1,4 @@
-module.exports = function (text) {
+module.exports = function (text, tag) {
 
   require('./vendor/helvetiker_regular.js');
 
@@ -74,7 +74,7 @@ module.exports = function (text) {
     })
     //new THREE.MeshNormalMaterial
   );
-  //textMesh1.name = tag;
+  textMesh1.name = tag;
 
   return textMesh1;
 

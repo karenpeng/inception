@@ -23,6 +23,7 @@ var scalar = 1;
 var expo = 1;
 var Widget = require('./event.js');
 var w = Widget();
+var aheadOfTime = 800;
 // var es5 = require('./es5.js')
 // w.on('hit', es5.wat)
 var isHitOrNot = null;
@@ -136,8 +137,8 @@ module.exports = {
     gates.push(gate);
   },
 
-  addText: function (_text, scene) {
-    var text = createText(_text);
+  addText: function (_text, tag, scene) {
+    var text = createText(_text, tag);
     text.position.copy(forward.position);
     text.matrix.lookAt(text.position, lookForward, new THREE.Vector3(0, 0, 0));
     text.rotation.setFromRotationMatrix(text.matrix, text.rotation.order);
@@ -145,7 +146,7 @@ module.exports = {
     scene.add(text);
   },
 
-  destoryText: function (index, scene) {
+  destoryText: function (_index, scene) {
     var index = texts.length-1
     scene.remove(texts[index])
     texts[index].traverse(function (item) {
@@ -158,27 +159,41 @@ module.exports = {
     texts.pop()
   },
 
-  changeText: function (_text, index, scene) {
+  changeText: function (_text, tag, index, scene) {
     var index = texts.length-1
     this.destoryText(index, scene);
-    this.addText(_text, scene);
+    this.addText(_text, tag, scene);
   },
 
   isHit: function () {
-    var ray = dir;
+    //var ray = dir;
+    var ray;
+    // if(speed ===1){
+    ray = idonu;
+    // }else if(speed === -1){
+    //   ray = idonu.multiplyScalar(-1);
+    //   console.log(ray.x, ray.y, ray.z)
+    // }else{
+    //   ray = new THREE.Vector3(0,0,0)
+    // }
+     //ray = idonu.multiplyScalar(-1);
     //console.log(texts[texts.length - 1] instanceof THREE.Mesh)
+    //console.log(texts.length)
+    //console.log(texts.length)
+    if(speed ==1)
     var obj = [texts[texts.length - 1], texts[texts.length - 1]];
+    //if(speed ===-1)
+    else var obj = [texts[texts.length - 2], texts[texts.length - 2]]
     raycaster.ray.set(splineCamera.position, ray);
     var intersects = raycaster.intersectObjects(obj, true);
-    console.log
-    if (intersects.length > 0 && intersects[0].distance <= 10) {
+    if (intersects.length > 0 && intersects[0].distance <= 100) {
       return intersects[0].object.name;
     }
     return null;
   },
 
   updateForward: function () {
-    var tForward = ((cameraCounter + 500) % loopTime) / loopTime;
+    var tForward = ((cameraCounter + aheadOfTime) % loopTime) / loopTime;
     var pos = tube.parameters.path.getPointAt(tForward);
     pos.multiplyScalar(scale);
 
@@ -208,6 +223,7 @@ module.exports = {
     pos.multiplyScalar(scale);
 
     dir = tube.parameters.path.getTangent(t);
+    idonu = tube.parameters.path.getTangentAt(t)
 
     splineCamera.position.copy(pos);
     var lookAt = tube.parameters.path.getPointAt((t + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);

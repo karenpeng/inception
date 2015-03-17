@@ -42,7 +42,7 @@ module.exports = function () {
 
 }
 },{}],"/Users/karen/Documents/my_project/inception/js/createText.js":[function(require,module,exports){
-module.exports = function (text) {
+module.exports = function (text, tag) {
 
   require('./vendor/helvetiker_regular.js');
 
@@ -118,7 +118,7 @@ module.exports = function (text) {
     })
     //new THREE.MeshNormalMaterial
   );
-  //textMesh1.name = tag;
+  textMesh1.name = tag;
 
   return textMesh1;
 
@@ -128,41 +128,6 @@ module.exports = {
   functionName: null,
   paramNumber: 0,
   history: []
-}
-},{}],"/Users/karen/Documents/my_project/inception/js/editor.js":[function(require,module,exports){
-module.exports = {
-
-  init: function () {
-    var editor1 = ace.edit("editor1");
-    editor1.setTheme("ace/theme/monokai");
-    editor1.getSession().setMode("ace/mode/javascript");
-
-    var editor2 = ace.edit("editor2");
-    editor2.setTheme("ace/theme/monokai");
-    editor2.getSession().setMode("ace/mode/javascript");
-  },
-
-  getValue: function (name) {
-    switch (name) {
-    case '1':
-      return editor1.getValue();
-    case '2':
-      return editor2.getValue();
-    }
-  },
-
-  getLineNum: function (string) {
-    var lines = editor1.session.getAllLines();
-    var stringNum = [];
-    for (var i = 0; i < lines.length; i++) {
-      if (lines[i].indexOf(string) !== -1) stringNum.push(i);
-    }
-    return stringNum;
-  },
-
-  addMarker: function () {
-
-  }
 }
 },{}],"/Users/karen/Documents/my_project/inception/js/es5.js":[function(require,module,exports){
 var graphic = require('./graphic.js');
@@ -175,23 +140,31 @@ function Controller(_history) {
   var index = 0;
   var history = _history;
   var flag = 0;
+  var task;
 //}
 
 graphic.w.on('hit', function(){
-  console.log(flag)
+  //console.log(flag)
    if (flag === 1) {
-
+      console.log('go back!')
       //graphic.pause()
       //graphic.destoryText(index - 1);
       graphic.destoryText(0, stage.scene)
       graphic.goBackward()
+      //setTimeout(function(){
       flag = 2
+      graphic.w.alarm = false;
+      return
+      //}, 100)
+
     }
 
     if(flag ===2){
+      console.log('ss')
       graphic.pause()
-      graphic.changeText(history.value, 0, stage.scene);
+      graphic.changeText(task.value, task.value, 0, stage.scene);
       flag = 0;
+      //console.log(flag)
 
       setTimeout(function () {
         next();
@@ -205,20 +178,20 @@ graphic.w.on('hit', function(){
 
     if(history.length < 1) return;
 
-    var task = history.shift()
+    task = history.shift()
 
     if (task.string === undefined) {
-      graphic.addText(task.value, stage.scene);
+      graphic.addText(task.value, task.value, stage.scene);
       graphic.goForward()
       graphic.w.alarm = true;
       setTimeout(function () {
         next();
-      }, 1000);
+      }, 2000);
 
     }else{
       //zoomIn(history[index].string)
       //graphic.pause()
-      graphic.addText(task.string, stage.scene)
+      graphic.addText(task.string, task.value, stage.scene)
       flag = 1
       console.log('ds '+flag)
       graphic.w.alarm = false;
@@ -279,9 +252,14 @@ function Widget() {
 }
 
 Widget.prototype.detect = function (something) {
+
+  if(!this.alarm){
+  console.log(something, this.alarm)
+  //console.log(this.alarm)
+ }
   if (something !== null && !this.alarm) {
+    console.log('ouch!')
     this.alarm = true;
-    //console.log('ouch!')
     this.emit('hit');
   }
 };
@@ -313,6 +291,7 @@ var scalar = 1;
 var expo = 1;
 var Widget = require('./event.js');
 var w = Widget();
+var aheadOfTime = 800;
 // var es5 = require('./es5.js')
 // w.on('hit', es5.wat)
 var isHitOrNot = null;
@@ -426,8 +405,8 @@ module.exports = {
     gates.push(gate);
   },
 
-  addText: function (_text, scene) {
-    var text = createText(_text);
+  addText: function (_text, tag, scene) {
+    var text = createText(_text, tag);
     text.position.copy(forward.position);
     text.matrix.lookAt(text.position, lookForward, new THREE.Vector3(0, 0, 0));
     text.rotation.setFromRotationMatrix(text.matrix, text.rotation.order);
@@ -435,7 +414,7 @@ module.exports = {
     scene.add(text);
   },
 
-  destoryText: function (index, scene) {
+  destoryText: function (_index, scene) {
     var index = texts.length-1
     scene.remove(texts[index])
     texts[index].traverse(function (item) {
@@ -448,27 +427,41 @@ module.exports = {
     texts.pop()
   },
 
-  changeText: function (_text, index, scene) {
+  changeText: function (_text, tag, index, scene) {
     var index = texts.length-1
     this.destoryText(index, scene);
-    this.addText(_text, scene);
+    this.addText(_text, tag, scene);
   },
 
   isHit: function () {
-    var ray = dir;
+    //var ray = dir;
+    var ray;
+    // if(speed ===1){
+    ray = idonu;
+    // }else if(speed === -1){
+    //   ray = idonu.multiplyScalar(-1);
+    //   console.log(ray.x, ray.y, ray.z)
+    // }else{
+    //   ray = new THREE.Vector3(0,0,0)
+    // }
+     //ray = idonu.multiplyScalar(-1);
     //console.log(texts[texts.length - 1] instanceof THREE.Mesh)
+    //console.log(texts.length)
+    //console.log(texts.length)
+    if(speed ==1)
     var obj = [texts[texts.length - 1], texts[texts.length - 1]];
+    //if(speed ===-1)
+    else var obj = [texts[texts.length - 2], texts[texts.length - 2]]
     raycaster.ray.set(splineCamera.position, ray);
     var intersects = raycaster.intersectObjects(obj, true);
-    console.log
-    if (intersects.length > 0 && intersects[0].distance <= 10) {
+    if (intersects.length > 0 && intersects[0].distance <= 100) {
       return intersects[0].object.name;
     }
     return null;
   },
 
   updateForward: function () {
-    var tForward = ((cameraCounter + 500) % loopTime) / loopTime;
+    var tForward = ((cameraCounter + aheadOfTime) % loopTime) / loopTime;
     var pos = tube.parameters.path.getPointAt(tForward);
     pos.multiplyScalar(scale);
 
@@ -498,6 +491,7 @@ module.exports = {
     pos.multiplyScalar(scale);
 
     dir = tube.parameters.path.getTangent(t);
+    idonu = tube.parameters.path.getTangentAt(t)
 
     splineCamera.position.copy(pos);
     var lookAt = tube.parameters.path.getPointAt((t + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
@@ -565,7 +559,7 @@ var parse = require('./parse.js');
 //var incept = require('./incept.js');
 var graphic = require('./graphic.js');
 
-require('./editor.js').init();
+//require('./editor.js').init();
 
 function fibonacci(num) {
   if (num === 0) return 0;
@@ -655,7 +649,7 @@ window.onkeydown = function (e) {
     control(history)
   }
 }
-},{"./editor.js":"/Users/karen/Documents/my_project/inception/js/editor.js","./es5.js":"/Users/karen/Documents/my_project/inception/js/es5.js","./graphic.js":"/Users/karen/Documents/my_project/inception/js/graphic.js","./parse.js":"/Users/karen/Documents/my_project/inception/js/parse.js","./stage.js":"/Users/karen/Documents/my_project/inception/js/stage.js"}],"/Users/karen/Documents/my_project/inception/js/parse.js":[function(require,module,exports){
+},{"./es5.js":"/Users/karen/Documents/my_project/inception/js/es5.js","./graphic.js":"/Users/karen/Documents/my_project/inception/js/graphic.js","./parse.js":"/Users/karen/Documents/my_project/inception/js/parse.js","./stage.js":"/Users/karen/Documents/my_project/inception/js/stage.js"}],"/Users/karen/Documents/my_project/inception/js/parse.js":[function(require,module,exports){
 // function fibonacci(num) {
 // _enter(3,arguments);
 // if (num === 0) return _exit(0,0, "return 0;");;
