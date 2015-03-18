@@ -9,26 +9,29 @@ function Controller(_history) {
   var history = _history;
   var flag = 0;
   var task;
+  var waiting = false;
 
   graphic.w.on('hit', function () {
-    //console.log(flag)
-    if (flag === 1) {
-      //console.log('go back!')
-      graphic.destoryText(0, stage.scene)
-      graphic.goBackward()
-      flag = 2
-      graphic.w.alarm = false;
-      return
-    }
+    if (waiting) {
+      //console.log(flag)
+      if (flag === 1) {
+        //console.log('go back!')
+        graphic.destoryText(0, stage.scene)
+        graphic.goBackward()
+        flag = 2
+        graphic.w.alarm = false;
+        return
+      }
 
-    if (flag === 2) {
-      //console.log('ss')
-      graphic.pause()
-      graphic.changeText(task.value, task.string, 0, stage.scene, true);
-      flag = 0;
-      setTimeout(function () {
-        next();
-      }, 2000);
+      if (flag === 2) {
+        //console.log('ss')
+        graphic.pause()
+        graphic.changeText(task.value, task.string, 0, stage.scene, true);
+        flag = 0;
+        setTimeout(function () {
+          next();
+        }, 2000);
+      }
     }
 
   });
@@ -45,6 +48,7 @@ function Controller(_history) {
     if (task.string === undefined) {
       graphic.addText(task.value, task.string, stage.scene, false);
       graphic.w.alarm = true;
+      waiting = false;
       setTimeout(function () {
         next();
       }, 1200);
@@ -53,6 +57,7 @@ function Controller(_history) {
       graphic.addText(task.string, task.string, stage.scene, false)
       flag = 1;
       graphic.w.alarm = false;
+      waiting = true;
     }
   }
 

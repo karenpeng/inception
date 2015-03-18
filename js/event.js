@@ -13,12 +13,12 @@ Widget.prototype.detect = function (something) {
   //   console.log(something, this.alarm)
   // }
   if (something !== null && !this.alarm) {
-
-    this.alarm = true;
-    console.log(something.destoried)
+    //console.log('ouch!')
+    //console.log(something.destoried)
     if (!something.destoried) {
-      //console.log('ouch!')
-      this.emit('hit');
+      this.alarm = true;
+      //console.log(something)
+      this.emit('hit', something.id);
     }
   }
 };

@@ -192,8 +192,12 @@ module.exports = {
     ctrls.push(ctrl)
   },
 
-  destoryText: function (_index, scene) {
-    var index = texts.length - 1
+  destoryText: function (_id, scene) {
+    var obj = scene.getObjectById(_id)
+    var index
+    ctrls.forEach(function (ctrl, _index) {
+        if (ctrl.id === _id) index = _index
+      })
       //if (!texts[index].destoried) {
     scene.remove(texts[index])
     texts[index].traverse(function (item) {
@@ -230,7 +234,7 @@ module.exports = {
 
     // var obj = [texts[texts.length - 1], texts[texts.length - 1]];
     //console.log(obj[0].name)
-    var obj = [ctrls[texts.length - 1], ctrls[texts.length - 1]];
+    var obj = ctrls;
 
     raycaster.ray.set(inBetweenLove.position, ray);
 

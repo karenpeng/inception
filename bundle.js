@@ -141,26 +141,29 @@ function Controller(_history) {
   var history = _history;
   var flag = 0;
   var task;
+  var waiting = false;
 
   graphic.w.on('hit', function () {
-    //console.log(flag)
-    if (flag === 1) {
-      //console.log('go back!')
-      graphic.destoryText(0, stage.scene)
-      graphic.goBackward()
-      flag = 2
-      graphic.w.alarm = false;
-      return
-    }
+    if (waiting) {
+      //console.log(flag)
+      if (flag === 1) {
+        //console.log('go back!')
+        graphic.destoryText(0, stage.scene)
+        graphic.goBackward()
+        flag = 2
+        graphic.w.alarm = false;
+        return
+      }
 
-    if (flag === 2) {
-      //console.log('ss')
-      graphic.pause()
-      graphic.changeText(task.value, task.string, 0, stage.scene, true);
-      flag = 0;
-      setTimeout(function () {
-        next();
-      }, 2000);
+      if (flag === 2) {
+        //console.log('ss')
+        graphic.pause()
+        graphic.changeText(task.value, task.string, 0, stage.scene, true);
+        flag = 0;
+        setTimeout(function () {
+          next();
+        }, 2000);
+      }
     }
 
   });
@@ -177,6 +180,7 @@ function Controller(_history) {
     if (task.string === undefined) {
       graphic.addText(task.value, task.string, stage.scene, false);
       graphic.w.alarm = true;
+      waiting = false;
       setTimeout(function () {
         next();
       }, 1200);
@@ -185,6 +189,7 @@ function Controller(_history) {
       graphic.addText(task.string, task.string, stage.scene, false)
       flag = 1;
       graphic.w.alarm = false;
+      waiting = true;
     }
   }
 
@@ -206,12 +211,12 @@ Widget.prototype.detect = function (something) {
   //   console.log(something, this.alarm)
   // }
   if (something !== null && !this.alarm) {
-
-    this.alarm = true;
-    console.log(something.destoried)
+    //console.log('ouch!')
+    //console.log(something.destoried)
     if (!something.destoried) {
-      //console.log('ouch!')
-      this.emit('hit');
+      this.alarm = true;
+      //console.log(something)
+      this.emit('hit', something.id);
     }
   }
 };
@@ -412,8 +417,12 @@ module.exports = {
     ctrls.push(ctrl)
   },
 
-  destoryText: function (_index, scene) {
-    var index = texts.length - 1
+  destoryText: function (_id, scene) {
+    var obj = scene.getObjectById(_id)
+    var index
+    ctrls.forEach(function (ctrl, _index) {
+        if (ctrl.id === _id) index = _index
+      })
       //if (!texts[index].destoried) {
     scene.remove(texts[index])
     texts[index].traverse(function (item) {
@@ -450,7 +459,7 @@ module.exports = {
 
     // var obj = [texts[texts.length - 1], texts[texts.length - 1]];
     //console.log(obj[0].name)
-    var obj = [ctrls[texts.length - 1], ctrls[texts.length - 1]];
+    var obj = ctrls;
 
     raycaster.ray.set(inBetweenLove.position, ray);
 
