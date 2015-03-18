@@ -10,7 +10,7 @@ function Widget() {
 
 Widget.prototype.detect = function (something) {
   // if (!this.alarm) {
-  //   console.log(something, this.alarm)
+  //console.log(something, this.alarm)
   // }
   if (something !== null && !this.alarm) {
     //console.log('ouch!')

@@ -143,12 +143,12 @@ function Controller(_history) {
   var task;
   var waiting = false;
 
-  graphic.w.on('hit', function () {
+  graphic.w.on('hit', function (id) {
     if (waiting) {
       //console.log(flag)
       if (flag === 1) {
         //console.log('go back!')
-        graphic.destoryText(0, stage.scene)
+        graphic.destoryText(id, stage.scene)
         graphic.goBackward()
         flag = 2
         graphic.w.alarm = false;
@@ -158,7 +158,7 @@ function Controller(_history) {
       if (flag === 2) {
         //console.log('ss')
         graphic.pause()
-        graphic.changeText(task.value, task.string, 0, stage.scene, true);
+        graphic.changeText(task.value, task.string, id, stage.scene, true);
         flag = 0;
         setTimeout(function () {
           next();
@@ -208,7 +208,7 @@ function Widget() {
 
 Widget.prototype.detect = function (something) {
   // if (!this.alarm) {
-  //   console.log(something, this.alarm)
+  //console.log(something, this.alarm)
   // }
   if (something !== null && !this.alarm) {
     //console.log('ouch!')
@@ -328,7 +328,7 @@ module.exports = {
     this.updateCamera();
     this.updateForward();
     this.updateLove();
-    if (texts.length > 0) {
+    if (ctrls.length > 0) {
       w.detect(this.isHit());
       //isHitOrNot = this.isHit();
     }
@@ -393,72 +393,68 @@ module.exports = {
 
   addText: function (_text, tag, scene, _destoried) {
     var text = createText(_text, tag);
+    var ctrl = new THREE.Mesh(new THREE.SphereGeometry(0.2), new THREE.MeshNormalMaterial())
+    ctrl.name = 'lol'
+    ctrl.destoried = _destoried
 
     if (speed === 1) {
-      text.position.copy(forward.position);
+      ctrl.position.copy(forward.position);
     } else {
-      text.position.copy(inBetweenLove.position);
+      ctrl.position.copy(inBetweenLove.position);
     }
-    text.matrix.lookAt(text.position, lookForward, new THREE.Vector3(0, 0, 0));
-    text.rotation.setFromRotationMatrix(text.matrix, text.rotation.order);
+    ctrl.matrix.lookAt(ctrl.position, lookForward, new THREE.Vector3(0, 0, 0));
+    ctrl.rotation.setFromRotationMatrix(ctrl.matrix, ctrl.rotation.order);
 
-    texts.push(text);
-    scene.add(text);
+    ctrl.add(text);
 
-    var ctrl = new THREE.Object3D()
-    ctrl.position.copy(text.position)
-    var test2 = new THREE.Mesh(new THREE.SphereGeometry(1), new THREE.MeshNormalMaterial())
-    test2.scale.set(0.2, 0.2, 0.2)
-      //test2.visivle = false;
-    test2.destoried = _destoried;
-    ctrl.add(test2)
+    ctrl.destoried = _destoried;
     scene.add(ctrl)
-      //ctrl.visible = false;
+
     ctrls.push(ctrl)
+
+    // if (speed === 1) {
+    //   text.position.copy(forward.position);
+    // } else {
+    //   text.position.copy(inBetweenLove.position);
+    // }
+    // text.matrix.lookAt(text.position, lookForward, new THREE.Vector3(0, 0, 0));
+    // text.rotation.setFromRotationMatrix(text.matrix, text.rotation.order);
+    // scene.add(text)
+    // texts.push(text)
   },
 
   destoryText: function (_id, scene) {
     var obj = scene.getObjectById(_id)
-    var index
-    ctrls.forEach(function (ctrl, _index) {
-        if (ctrl.id === _id) index = _index
-      })
-      //if (!texts[index].destoried) {
-    scene.remove(texts[index])
-    texts[index].traverse(function (item) {
+    console.log(obj.name)
+
+    // var objCtrl = obj.parent
+    // console.log(parent)
+
+    scene.remove(obj)
+    obj.traverse(function (item) {
       if (item instanceof THREE.Mesh) {
         item.geometry.dispose()
         item.material.dispose()
       }
       item = null
     })
-    texts.pop()
-    scene.remove(ctrls[index])
-    ctrls[index].traverse(function (item) {
-      if (item instanceof THREE.Mesh) {
-        item.geometry.dispose()
-        item.material.dispose()
+
+    for (var i = 0; i < ctrls.length; i++) {
+      if (ctrls[i].id === obj.id) {
+        ctrls.splice(i, 1)
+        break
       }
-      item = null
-    })
-    ctrls.pop()
-      //}
-      // else{
-      //   callback()
-      // }
+    }
+
   },
 
-  changeText: function (_text, tag, index, scene, destoried) {
-    var index = texts.length - 1
-    this.destoryText(index, scene);
+  changeText: function (_text, tag, id, scene, destoried) {
+    this.destoryText(id, scene);
     this.addText(_text, tag, scene, destoried);
   },
 
   isHit: function () {
     var ray = idonu;
-
-    // var obj = [texts[texts.length - 1], texts[texts.length - 1]];
-    //console.log(obj[0].name)
     var obj = ctrls;
 
     raycaster.ray.set(inBetweenLove.position, ray);

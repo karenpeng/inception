@@ -11,12 +11,12 @@ function Controller(_history) {
   var task;
   var waiting = false;
 
-  graphic.w.on('hit', function () {
+  graphic.w.on('hit', function (id) {
     if (waiting) {
       //console.log(flag)
       if (flag === 1) {
         //console.log('go back!')
-        graphic.destoryText(0, stage.scene)
+        graphic.destoryText(id, stage.scene)
         graphic.goBackward()
         flag = 2
         graphic.w.alarm = false;
@@ -26,7 +26,7 @@ function Controller(_history) {
       if (flag === 2) {
         //console.log('ss')
         graphic.pause()
-        graphic.changeText(task.value, task.string, 0, stage.scene, true);
+        graphic.changeText(task.value, task.string, id, stage.scene, true);
         flag = 0;
         setTimeout(function () {
           next();
