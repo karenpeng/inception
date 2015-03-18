@@ -5,7 +5,6 @@ var stage = require('./stage.js');
 module.exports = Controller;
 
 function Controller(_history) {
-  var index = 0;
   var history = _history;
   var flag = 0;
   var task;
@@ -67,7 +66,7 @@ function Controller(_history) {
       graphic.addText(task.value, task.string, stage.scene, true);
       setTimeout(function () {
         next();
-      }, 1200);
+      }, 1000);
 
     } else {
       flag = 1;

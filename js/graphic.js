@@ -16,7 +16,7 @@ var cameraCounter = 0;
 var loopTime = 10000;
 var ctrls = [];
 var texts = []
-  //var dir;
+var gates = [];
 var ball = null;
 var gates = [];
 var scalar = 1;
@@ -26,6 +26,7 @@ var w = Widget();
 var aheadOfTime = 800;
 var aheadOfLove = 200;
 var idonu = new THREE.Vector3(0, 0, 0);
+var gateLayers = 6;
 
 module.exports = {
   init: function (scene) {
@@ -124,15 +125,21 @@ module.exports = {
     renderer.render(scene, rollercoaster ? splineCamera : camera);
   },
 
-  // addGate: function (scene) {
-  //   var gate = createGate();
-  //   //gate.lookAt(splineCamera.position);
-  //   gate.position.copy(forward.position);
-  //   gate.matrix.lookAt(gate.position, lookForward, new THREE.Vector3(0, 0, 0));
-  //   gate.rotation.setFromRotationMatrix(gate.matrix, gate.rotation.order);
-  //   scene.add(gate);
-  //   gates.push(gate);
-  // },
+  addGate: function (scene) {
+    var gate = createGate();
+    //gate.lookAt(splineCamera.position);
+    if (speed === 1) {
+      gate.position.copy(forward.position);
+      gate.matrix.lookAt(gate.position, lookForward, new THREE.Vector3(0, 0, 0));
+    } else {
+      gate.position.copy(inBetweenLove.position);
+      gate.matrix.lookAt(gate.position, lookForwardForLove, new THREE.Vector3(0, 0, 0));
+    }
+
+    gate.rotation.setFromRotationMatrix(gate.matrix, gate.rotation.order);
+    scene.add(gate);
+    gates.push(gate);
+  },
 
   addText: function (_text, tag, scene, _destoried) {
 
@@ -144,10 +151,12 @@ module.exports = {
 
     if (speed === 1) {
       ctrl.position.copy(forward.position);
+      ctrl.matrix.lookAt(ctrl.position, lookForward, new THREE.Vector3(0, 0, 0));
     } else {
       ctrl.position.copy(inBetweenLove.position);
+      ctrl.matrix.lookAt(ctrl.position, lookForwardForLove, new THREE.Vector3(0, 0, 0));
     }
-    ctrl.matrix.lookAt(ctrl.position, lookForward, new THREE.Vector3(0, 0, 0));
+
     ctrl.rotation.setFromRotationMatrix(ctrl.matrix, ctrl.rotation.order);
 
     //ctrl.add(text);
@@ -159,29 +168,26 @@ module.exports = {
     var text = createText(_text, tag);
     if (speed === 1) {
       text.position.copy(forward.position);
+      text.matrix.lookAt(text.position, lookForward, new THREE.Vector3(0, 0, 0));
     } else {
       text.position.copy(inBetweenLove.position);
+      text.matrix.lookAt(text.position, lookForwardForLove, new THREE.Vector3(0, 0, 0));
     }
-    text.matrix.lookAt(text.position, lookForward, new THREE.Vector3(0, 0, 0));
+
     text.rotation.setFromRotationMatrix(text.matrix, text.rotation.order);
 
     scene.add(text);
     texts.push(text);
 
-    // for (var i = 0; i < 6; i++) {
-    //   // setTimeout(function () {
-    //   //   var gate = createGate();
-    //   //   text.add(gate)
-    //   // }, i * 300)
-    //   addGate(i)
-    // }
-
-    function addGate(num) {
+    var gate = createGate()
+      //text.add(gate)
+    for (var i = 0; i < gateLayers; i++) {
+      var self = this;
       setTimeout(function () {
-        var gate = createGate()
-        text.add(gate)
-      }, i * num)
+        self.addGate(scene);
+      }, i * 100)
     }
+
   },
 
   destoryText: function (_id, scene) {
@@ -189,18 +195,25 @@ module.exports = {
       //console.log(obj.name)
     this.destorySomething(obj, scene)
 
-    var idToDestory = null;
+    var indexToDestory = null;
     for (var i = 0; i < ctrls.length; i++) {
       if (ctrls[i].id === obj.id) {
         ctrls.splice(i, 1)
-        idToDestory = i;
+        indexToDestory = i;
         break
       }
     }
 
-    var text = texts[idToDestory];
+    var text = texts[indexToDestory];
     this.destorySomething(text, scene);
-    texts.splice(idToDestory, 1);
+    texts.splice(indexToDestory, 1);
+
+    for (var i = indexToDestory * gateLayers; i < (indexToDestory + 1) * gateLayers; i++) {
+      var gate = gates[i];
+      this.destorySomething(gate, scene);
+    }
+    gates.splice(indexToDestory * gateLayers, gateLayers);
+    console.log(gates.length)
 
   },
 
@@ -314,13 +327,7 @@ module.exports = {
   },
 
   switchSpline: function (scene) {
-    scene.remove(tubeMesh);
-    //TODO: find out how to dispose geometry and material
-    tubeMesh.children.forEach(function (item) {
-        item.dispose();
-      })
-      //tubeMesh.dispose();
-    tubeMesh = null;
+    this.destorySomething(tubeMesh, scene);
     splineIndex++;
     if (splineIndex > splines.length - 1) splineIndex = 0;
     tube = new THREE.TubeGeometry(splines[splineIndex], 100, 2, 4, true);
@@ -337,5 +344,6 @@ module.exports = {
     renderer.setSize(window.innerWidth, window.innerHeight);
   },
   splineCamera: splineCamera,
-  w: w
+  w: w,
+  tubeMesh: tubeMesh
 }

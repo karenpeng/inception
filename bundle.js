@@ -137,7 +137,6 @@ var stage = require('./stage.js');
 module.exports = Controller;
 
 function Controller(_history) {
-  var index = 0;
   var history = _history;
   var flag = 0;
   var task;
@@ -199,7 +198,7 @@ function Controller(_history) {
       graphic.addText(task.value, task.string, stage.scene, true);
       setTimeout(function () {
         next();
-      }, 1200);
+      }, 1000);
 
     } else {
       flag = 1;
@@ -258,7 +257,7 @@ var cameraCounter = 0;
 var loopTime = 10000;
 var ctrls = [];
 var texts = []
-  //var dir;
+var gates = [];
 var ball = null;
 var gates = [];
 var scalar = 1;
@@ -268,6 +267,7 @@ var w = Widget();
 var aheadOfTime = 800;
 var aheadOfLove = 200;
 var idonu = new THREE.Vector3(0, 0, 0);
+var gateLayers = 6;
 
 module.exports = {
   init: function (scene) {
@@ -366,15 +366,21 @@ module.exports = {
     renderer.render(scene, rollercoaster ? splineCamera : camera);
   },
 
-  // addGate: function (scene) {
-  //   var gate = createGate();
-  //   //gate.lookAt(splineCamera.position);
-  //   gate.position.copy(forward.position);
-  //   gate.matrix.lookAt(gate.position, lookForward, new THREE.Vector3(0, 0, 0));
-  //   gate.rotation.setFromRotationMatrix(gate.matrix, gate.rotation.order);
-  //   scene.add(gate);
-  //   gates.push(gate);
-  // },
+  addGate: function (scene) {
+    var gate = createGate();
+    //gate.lookAt(splineCamera.position);
+    if (speed === 1) {
+      gate.position.copy(forward.position);
+      gate.matrix.lookAt(gate.position, lookForward, new THREE.Vector3(0, 0, 0));
+    } else {
+      gate.position.copy(inBetweenLove.position);
+      gate.matrix.lookAt(gate.position, lookForwardForLove, new THREE.Vector3(0, 0, 0));
+    }
+
+    gate.rotation.setFromRotationMatrix(gate.matrix, gate.rotation.order);
+    scene.add(gate);
+    gates.push(gate);
+  },
 
   addText: function (_text, tag, scene, _destoried) {
 
@@ -386,10 +392,12 @@ module.exports = {
 
     if (speed === 1) {
       ctrl.position.copy(forward.position);
+      ctrl.matrix.lookAt(ctrl.position, lookForward, new THREE.Vector3(0, 0, 0));
     } else {
       ctrl.position.copy(inBetweenLove.position);
+      ctrl.matrix.lookAt(ctrl.position, lookForwardForLove, new THREE.Vector3(0, 0, 0));
     }
-    ctrl.matrix.lookAt(ctrl.position, lookForward, new THREE.Vector3(0, 0, 0));
+
     ctrl.rotation.setFromRotationMatrix(ctrl.matrix, ctrl.rotation.order);
 
     //ctrl.add(text);
@@ -401,29 +409,26 @@ module.exports = {
     var text = createText(_text, tag);
     if (speed === 1) {
       text.position.copy(forward.position);
+      text.matrix.lookAt(text.position, lookForward, new THREE.Vector3(0, 0, 0));
     } else {
       text.position.copy(inBetweenLove.position);
+      text.matrix.lookAt(text.position, lookForwardForLove, new THREE.Vector3(0, 0, 0));
     }
-    text.matrix.lookAt(text.position, lookForward, new THREE.Vector3(0, 0, 0));
+
     text.rotation.setFromRotationMatrix(text.matrix, text.rotation.order);
 
     scene.add(text);
     texts.push(text);
 
-    // for (var i = 0; i < 6; i++) {
-    //   // setTimeout(function () {
-    //   //   var gate = createGate();
-    //   //   text.add(gate)
-    //   // }, i * 300)
-    //   addGate(i)
-    // }
-
-    function addGate(num) {
+    var gate = createGate()
+      //text.add(gate)
+    for (var i = 0; i < gateLayers; i++) {
+      var self = this;
       setTimeout(function () {
-        var gate = createGate()
-        text.add(gate)
-      }, i * num)
+        self.addGate(scene);
+      }, i * 100)
     }
+
   },
 
   destoryText: function (_id, scene) {
@@ -431,18 +436,25 @@ module.exports = {
       //console.log(obj.name)
     this.destorySomething(obj, scene)
 
-    var idToDestory = null;
+    var indexToDestory = null;
     for (var i = 0; i < ctrls.length; i++) {
       if (ctrls[i].id === obj.id) {
         ctrls.splice(i, 1)
-        idToDestory = i;
+        indexToDestory = i;
         break
       }
     }
 
-    var text = texts[idToDestory];
+    var text = texts[indexToDestory];
     this.destorySomething(text, scene);
-    texts.splice(idToDestory, 1);
+    texts.splice(indexToDestory, 1);
+
+    for (var i = indexToDestory * gateLayers; i < (indexToDestory + 1) * gateLayers; i++) {
+      var gate = gates[i];
+      this.destorySomething(gate, scene);
+    }
+    gates.splice(indexToDestory * gateLayers, gateLayers);
+    console.log(gates.length)
 
   },
 
@@ -556,13 +568,7 @@ module.exports = {
   },
 
   switchSpline: function (scene) {
-    scene.remove(tubeMesh);
-    //TODO: find out how to dispose geometry and material
-    tubeMesh.children.forEach(function (item) {
-        item.dispose();
-      })
-      //tubeMesh.dispose();
-    tubeMesh = null;
+    this.destorySomething(tubeMesh, scene);
     splineIndex++;
     if (splineIndex > splines.length - 1) splineIndex = 0;
     tube = new THREE.TubeGeometry(splines[splineIndex], 100, 2, 4, true);
@@ -579,7 +585,8 @@ module.exports = {
     renderer.setSize(window.innerWidth, window.innerHeight);
   },
   splineCamera: splineCamera,
-  w: w
+  w: w,
+  tubeMesh: tubeMesh
 }
 },{"./createGate.js":"/Users/karen/Documents/my_project/inception/js/createGate.js","./createText.js":"/Users/karen/Documents/my_project/inception/js/createText.js","./event.js":"/Users/karen/Documents/my_project/inception/js/event.js","./splines.js":"/Users/karen/Documents/my_project/inception/js/splines.js","./vendor/CurveExtras.js":"/Users/karen/Documents/my_project/inception/js/vendor/CurveExtras.js"}],"/Users/karen/Documents/my_project/inception/js/main.js":[function(require,module,exports){
 var parse = require('./parse.js');
@@ -594,113 +601,23 @@ function fibonacci(num) {
   return fibonacci(num - 1) + fibonacci(num - 2);
 }
 
-// function quickSort(arr) {
-//   _quickSort(arr, 0, arr.length);
-// }
-
-// function _quickSort(arr, first, last) {
-
-//   if (first >= last) {
-
-//     return;
-
-//   } else {
-//     var pivot = partition(arr, first, last);
-
-//     _quickSort(arr, first, pivot - 1);
-//     _quickSort(arr, pivot, last);
-//   }
-// }
-
-// function partition(arr, first, last) {
-//   var pivot = arr[first];
-
-//   //console.log('! ' + pivot);
-
-//   var lessIndex = first + 1;
-
-//   for (var moreIndex = lessIndex; moreIndex < last; moreIndex++) {
-
-//     if (arr[moreIndex] <= pivot) {
-
-//       swap(arr, moreIndex, lessIndex);
-//       lessIndex++;
-
-//     }
-
-//   }
-
-//   swap(arr, first, lessIndex - 1)
-
-//   //console.log(arr);
-
-//   return lessIndex;
-
-// }
-
-// function swap(arr, x, y) {
-//   var temp = arr[y];
-//   arr[y] = arr[x];
-//   arr[x] = temp;
-// }
-
-var call = 'fibonacci(4)';
+var call = 'fibonacci(2)';
 
 var test = fibonacci.toString().concat(call);
 
-// var call = ['var test = [4, 6, 13, 6, 2, 7, 346, 15, 64, 246, 2, 6, 64];',
-//   'mergeSort(test);'
-// ].join('\n')
-// var test = _quickSort.toString().concat(call);
 var history = parse(test).history;
 
-//console.log(history)
-
 history.forEach(function (item) {
-  //console.log('behold: ' + item[Object.keys(item)])
   console.log(item.value + ' ' + item.string)
 })
 
 var control = require('./es5.js');
-//var func = new control(history);
-
-//func.next()
-
-// window.onkeydown = function (e) {
-//   //enter
-//   if (e.which === 13) {
-//     e.preventDefault();
-//     func.next();
-//   }
-// }
-
-// var iterator = incept(history);
-// //setInterval(function () {
-// function callNext() {
-//     var it = iterator.next();
-//     if (it.done) return;
-//   }
-//   //}, 1000);
-// exports.callNext = callNext();
-// setInterval(function () {
-//   func();
-// }, 1000);
 
 window.onkeydown = function (e) {
   //space
   if (e.which === 32) {
     e.preventDefault();
     graphic.switchCamera();
-  }
-  //s
-  if (e.which === 83) {
-    e.preventDefault();
-    graphic.switchSpline();
-  }
-  //a
-  if (e.which === 65) {
-    e.preventDefault();
-    graphic.addGate(require('./stage.js').scene);
   }
   //b
   if (e.which === 66) {
@@ -719,11 +636,6 @@ window.onkeydown = function (e) {
     // graphic.speed = 0;
     graphic.pause();
   }
-  //e
-  if (e.which === 69) {
-    e.preventDefault();
-    graphic.addText('undefined', 'string', require('./stage.js').scene);
-  }
   //enter
   if (e.which === 13) {
     e.preventDefault();
@@ -731,7 +643,7 @@ window.onkeydown = function (e) {
     control(history)
   }
 }
-},{"./es5.js":"/Users/karen/Documents/my_project/inception/js/es5.js","./graphic.js":"/Users/karen/Documents/my_project/inception/js/graphic.js","./parse.js":"/Users/karen/Documents/my_project/inception/js/parse.js","./stage.js":"/Users/karen/Documents/my_project/inception/js/stage.js"}],"/Users/karen/Documents/my_project/inception/js/parse.js":[function(require,module,exports){
+},{"./es5.js":"/Users/karen/Documents/my_project/inception/js/es5.js","./graphic.js":"/Users/karen/Documents/my_project/inception/js/graphic.js","./parse.js":"/Users/karen/Documents/my_project/inception/js/parse.js"}],"/Users/karen/Documents/my_project/inception/js/parse.js":[function(require,module,exports){
 // function fibonacci(num) {
 // _enter(3,arguments);
 // if (num === 0) return _exit(0,0, "return 0;");;
