@@ -166,8 +166,9 @@ module.exports = {
     gates.push(gate);
   },
 
-  addText: function (_text, tag, scene, flag) {
+  addText: function (_text, tag, scene, _destoried) {
     var text = createText(_text, tag);
+
     if (speed === 1) {
       text.position.copy(forward.position);
     } else {
@@ -184,14 +185,16 @@ module.exports = {
     var test2 = new THREE.Mesh(new THREE.SphereGeometry(1), new THREE.MeshNormalMaterial())
     test2.scale.set(0.2, 0.2, 0.2)
       //test2.visivle = false;
+    test2.destoried = _destoried;
     ctrl.add(test2)
     scene.add(ctrl)
-    ctrl.visible = false;
+      //ctrl.visible = false;
     ctrls.push(ctrl)
   },
 
   destoryText: function (_index, scene) {
     var index = texts.length - 1
+      //if (!texts[index].destoried) {
     scene.remove(texts[index])
     texts[index].traverse(function (item) {
       if (item instanceof THREE.Mesh) {
@@ -209,14 +212,17 @@ module.exports = {
       }
       item = null
     })
-
     ctrls.pop()
+      //}
+      // else{
+      //   callback()
+      // }
   },
 
-  changeText: function (_text, tag, index, scene) {
+  changeText: function (_text, tag, index, scene, destoried) {
     var index = texts.length - 1
     this.destoryText(index, scene);
-    this.addText(_text, tag, scene);
+    this.addText(_text, tag, scene, destoried);
   },
 
   isHit: function () {
@@ -231,7 +237,7 @@ module.exports = {
     var intersects = raycaster.intersectObjects(obj, true);
 
     if (intersects.length > 0 && intersects[0].distance <= 100) {
-      return intersects[0].object.name;
+      return intersects[0].object;
     }
     return null;
   },

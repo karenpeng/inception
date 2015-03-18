@@ -145,7 +145,7 @@ function Controller(_history) {
   graphic.w.on('hit', function () {
     //console.log(flag)
     if (flag === 1) {
-      console.log('go back!')
+      //console.log('go back!')
       graphic.destoryText(0, stage.scene)
       graphic.goBackward()
       flag = 2
@@ -156,7 +156,7 @@ function Controller(_history) {
     if (flag === 2) {
       //console.log('ss')
       graphic.pause()
-      graphic.changeText(task.value, task.string, 0, stage.scene);
+      graphic.changeText(task.value, task.string, 0, stage.scene, true);
       flag = 0;
       setTimeout(function () {
         next();
@@ -175,14 +175,14 @@ function Controller(_history) {
     task = history.shift()
 
     if (task.string === undefined) {
-      graphic.addText(task.value, task.string, stage.scene);
+      graphic.addText(task.value, task.string, stage.scene, false);
       graphic.w.alarm = true;
       setTimeout(function () {
         next();
       }, 1200);
 
     } else {
-      graphic.addText(task.string, task.string, stage.scene)
+      graphic.addText(task.string, task.string, stage.scene, false)
       flag = 1;
       graphic.w.alarm = false;
     }
@@ -202,14 +202,17 @@ function Widget() {
 }
 
 Widget.prototype.detect = function (something) {
-
   // if (!this.alarm) {
   //   console.log(something, this.alarm)
   // }
   if (something !== null && !this.alarm) {
-    //console.log('ouch!')
+
     this.alarm = true;
-    this.emit('hit');
+    console.log(something.destoried)
+    if (!something.destoried) {
+      //console.log('ouch!')
+      this.emit('hit');
+    }
   }
 };
 
@@ -383,8 +386,9 @@ module.exports = {
     gates.push(gate);
   },
 
-  addText: function (_text, tag, scene, flag) {
+  addText: function (_text, tag, scene, _destoried) {
     var text = createText(_text, tag);
+
     if (speed === 1) {
       text.position.copy(forward.position);
     } else {
@@ -401,14 +405,16 @@ module.exports = {
     var test2 = new THREE.Mesh(new THREE.SphereGeometry(1), new THREE.MeshNormalMaterial())
     test2.scale.set(0.2, 0.2, 0.2)
       //test2.visivle = false;
+    test2.destoried = _destoried;
     ctrl.add(test2)
     scene.add(ctrl)
-    ctrl.visible = false;
+      //ctrl.visible = false;
     ctrls.push(ctrl)
   },
 
   destoryText: function (_index, scene) {
     var index = texts.length - 1
+      //if (!texts[index].destoried) {
     scene.remove(texts[index])
     texts[index].traverse(function (item) {
       if (item instanceof THREE.Mesh) {
@@ -426,14 +432,17 @@ module.exports = {
       }
       item = null
     })
-
     ctrls.pop()
+      //}
+      // else{
+      //   callback()
+      // }
   },
 
-  changeText: function (_text, tag, index, scene) {
+  changeText: function (_text, tag, index, scene, destoried) {
     var index = texts.length - 1
     this.destoryText(index, scene);
-    this.addText(_text, tag, scene);
+    this.addText(_text, tag, scene, destoried);
   },
 
   isHit: function () {
@@ -448,7 +457,7 @@ module.exports = {
     var intersects = raycaster.intersectObjects(obj, true);
 
     if (intersects.length > 0 && intersects[0].distance <= 100) {
-      return intersects[0].object.name;
+      return intersects[0].object;
     }
     return null;
   },
