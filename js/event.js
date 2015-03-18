@@ -4,7 +4,7 @@ var inherits = require('inherits');
 inherits(Widget, EventEmitter);
 
 function Widget() {
-  this.alarm = false;
+  this.isObserving = false;
   if (!(this instanceof Widget)) return new Widget();
 }
 
@@ -12,14 +12,16 @@ Widget.prototype.detect = function (something) {
   // if (!this.alarm) {
   //console.log(something, this.alarm)
   // }
-  if (something !== null && !this.alarm) {
-    //console.log('ouch!')
-    //console.log(something.destoried)
-    if (!something.destoried) {
-      this.alarm = true;
-      //console.log(something)
-      this.emit('hit', something.id);
+  if (this.isObserving && something !== null) {
+
+    this.isObserving = false;
+    //omg i made my own socket io message emitter! hurray:)
+    var info = {
+      id: something.id,
+      name: something.name,
+      destoryable: something.destoryable
     }
+    this.emit('hit', info);
   }
 };
 

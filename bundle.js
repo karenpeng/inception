@@ -141,28 +141,45 @@ function Controller(_history) {
   var history = _history;
   var flag = 0;
   var task;
-  var waiting = false;
 
-  graphic.w.on('hit', function (id) {
-    if (waiting) {
-      //console.log(flag)
-      if (flag === 1) {
-        //console.log('go back!')
-        graphic.destoryText(id, stage.scene)
-        graphic.goBackward()
+  graphic.w.on('hit', function (info) {
+
+    //hit 'return 1' or hit 'return 0' or 'return fib(n-1) + fib(n-2)'
+    if (flag === 1) {
+      if (info.name === 'return fibonacci(num - 1) + fibonacci(num - 2);') {
+        flag = 3;
+      } else {
         flag = 2
-        graphic.w.alarm = false;
-        return
       }
+      graphic.destoryText(info.id, stage.scene)
+      graphic.goBackward()
+      graphic.w.isObserving = true;
 
-      if (flag === 2) {
-        //console.log('ss')
-        graphic.pause()
-        graphic.changeText(task.value, task.string, id, stage.scene, true);
+    } else if (flag === 2) {
+
+      flag = 0;
+      graphic.pause()
+      graphic.changeText(task.value, task.string, info.id, stage.scene, false);
+      setTimeout(function () {
+        next();
+      }, 1000);
+
+    }
+
+    //hits 1 and 0 and then fib(2)
+    else if (flag === 3) {
+      if (!info.destoryable) {
+        graphic.destoryText(info.id, stage.scene)
+        graphic.goBackward()
+        graphic.w.isObserving = true;
+      } else {
         flag = 0;
+        console.log('ouch!')
+        graphic.pause()
+        graphic.changeText(task.value, task.string, info.id, stage.scene, false)
         setTimeout(function () {
           next();
-        }, 2000);
+        }, 1000);
       }
     }
 
@@ -174,22 +191,20 @@ function Controller(_history) {
       graphic.goBackward();
       return;
     }
+
     graphic.goForward();
     task = history.shift()
 
     if (task.string === undefined) {
-      graphic.addText(task.value, task.string, stage.scene, false);
-      graphic.w.alarm = true;
-      waiting = false;
+      graphic.addText(task.value, task.string, stage.scene, true);
       setTimeout(function () {
         next();
       }, 1200);
 
     } else {
-      graphic.addText(task.string, task.string, stage.scene, false)
       flag = 1;
-      graphic.w.alarm = false;
-      waiting = true;
+      graphic.addText(task.string, task.string, stage.scene, true)
+      graphic.w.isObserving = true;
     }
   }
 
@@ -202,7 +217,7 @@ var inherits = require('inherits');
 inherits(Widget, EventEmitter);
 
 function Widget() {
-  this.alarm = false;
+  this.isObserving = false;
   if (!(this instanceof Widget)) return new Widget();
 }
 
@@ -210,14 +225,16 @@ Widget.prototype.detect = function (something) {
   // if (!this.alarm) {
   //console.log(something, this.alarm)
   // }
-  if (something !== null && !this.alarm) {
-    //console.log('ouch!')
-    //console.log(something.destoried)
-    if (!something.destoried) {
-      this.alarm = true;
-      //console.log(something)
-      this.emit('hit', something.id);
+  if (this.isObserving && something !== null) {
+
+    this.isObserving = false;
+    //omg i made my own socket io message emitter! hurray:)
+    var info = {
+      id: something.id,
+      name: something.name,
+      destoryable: something.destoryable
     }
+    this.emit('hit', info);
   }
 };
 
@@ -230,19 +247,18 @@ var createText = require('./createText.js');
 
 var scale, splineCamera, inBetweenLove,
   splines, tube, material, tubeMesh,
-  binormal, normal, lookForward, lookForwardForLove,
+  lookForward, lookForwardForLove,
   forward, raycaster,
   rollercoaster, splineIndex;
-var planePP;
 var visible = false;
 var magicNum = 1;
 var speed = 1;
 var speedRecord = speed;
 var cameraCounter = 0;
 var loopTime = 10000;
-var texts = [];
 var ctrls = [];
-//var dir;
+var texts = []
+  //var dir;
 var ball = null;
 var gates = [];
 var scalar = 1;
@@ -251,10 +267,6 @@ var Widget = require('./event.js');
 var w = Widget();
 var aheadOfTime = 800;
 var aheadOfLove = 200;
-// var es5 = require('./es5.js')
-// w.on('hit', es5.wat)
-var isHitOrNot = null;
-var test1;
 var idonu = new THREE.Vector3(0, 0, 0);
 
 module.exports = {
@@ -294,35 +306,13 @@ module.exports = {
     tubeMesh.scale.set(scale, scale, scale);
     scene.add(tubeMesh);
 
-    planePP = createGate();
-    //scene.add(planePP);
-
     /*testing*/
     ball = new THREE.Mesh(new THREE.SphereGeometry(20, 20, 20), new THREE.MeshNormalMaterial)
     scene.add(ball)
 
-    // var tem = new THREE.Geometry();
-    // tem.vertices.push(new THREE.Vector3(0, 0, 0));
-    // tem.vertices.push(new THREE.Vector3(0, 0, 0));
-    // test1 = new THREE.Line(tem, new THREE.LineBasicMaterial({
-    //   color: 0xffffff
-    // }))
-    // test1.verticesNeedUpdate = true;
-    // inBetweenLove.add(test1)
-
   },
 
   render: function (scene, camera, renderer) {
-    //var time = Date.now();
-    //if (rollercoaster) {
-    // var tem = new THREE.Geometry();
-    // tem.vertices.push(new THREE.Vector3.addVectors(idonu.position, inBetweenLove.position));
-    // tem.vertices.push(inBetweenLove.position);
-
-    // test1 = new THREE.Line(tem, new THREE.LineBasicMaterial({
-    //   color: 0x0000ff
-    // }))
-    // scene.add(test1)
 
     var time = Date.now()
     this.updateCamera();
@@ -330,13 +320,8 @@ module.exports = {
     this.updateLove();
     if (ctrls.length > 0) {
       w.detect(this.isHit());
-      //isHitOrNot = this.isHit();
     }
     tubeMesh.visible = visible;
-    forward.visible = true;
-
-    planePP.lookAt(splineCamera.position);
-    planePP.position.copy(splineCamera.position);
 
     //expo *= 1.00000000000000000000000000000000000000000000001
     //scalar += expo
@@ -381,21 +366,23 @@ module.exports = {
     renderer.render(scene, rollercoaster ? splineCamera : camera);
   },
 
-  addGate: function (scene) {
-    var gate = createGate();
-    //gate.lookAt(splineCamera.position);
-    gate.position.copy(forward.position);
-    gate.matrix.lookAt(gate.position, lookForward, new THREE.Vector3(0, 0, 0));
-    gate.rotation.setFromRotationMatrix(gate.matrix, gate.rotation.order);
-    scene.add(gate);
-    gates.push(gate);
-  },
+  // addGate: function (scene) {
+  //   var gate = createGate();
+  //   //gate.lookAt(splineCamera.position);
+  //   gate.position.copy(forward.position);
+  //   gate.matrix.lookAt(gate.position, lookForward, new THREE.Vector3(0, 0, 0));
+  //   gate.rotation.setFromRotationMatrix(gate.matrix, gate.rotation.order);
+  //   scene.add(gate);
+  //   gates.push(gate);
+  // },
 
   addText: function (_text, tag, scene, _destoried) {
-    var text = createText(_text, tag);
+
     var ctrl = new THREE.Mesh(new THREE.SphereGeometry(0.2), new THREE.MeshNormalMaterial())
-    ctrl.name = 'lol'
+    ctrl.name = tag
     ctrl.destoried = _destoried
+    ctrl.visible = false
+      //text.visible = true
 
     if (speed === 1) {
       ctrl.position.copy(forward.position);
@@ -405,31 +392,61 @@ module.exports = {
     ctrl.matrix.lookAt(ctrl.position, lookForward, new THREE.Vector3(0, 0, 0));
     ctrl.rotation.setFromRotationMatrix(ctrl.matrix, ctrl.rotation.order);
 
-    ctrl.add(text);
+    //ctrl.add(text);
 
-    ctrl.destoried = _destoried;
+    ctrl.destoryable = _destoried;
     scene.add(ctrl)
-
     ctrls.push(ctrl)
 
-    // if (speed === 1) {
-    //   text.position.copy(forward.position);
-    // } else {
-    //   text.position.copy(inBetweenLove.position);
+    var text = createText(_text, tag);
+    if (speed === 1) {
+      text.position.copy(forward.position);
+    } else {
+      text.position.copy(inBetweenLove.position);
+    }
+    text.matrix.lookAt(text.position, lookForward, new THREE.Vector3(0, 0, 0));
+    text.rotation.setFromRotationMatrix(text.matrix, text.rotation.order);
+
+    scene.add(text);
+    texts.push(text);
+
+    // for (var i = 0; i < 6; i++) {
+    //   // setTimeout(function () {
+    //   //   var gate = createGate();
+    //   //   text.add(gate)
+    //   // }, i * 300)
+    //   addGate(i)
     // }
-    // text.matrix.lookAt(text.position, lookForward, new THREE.Vector3(0, 0, 0));
-    // text.rotation.setFromRotationMatrix(text.matrix, text.rotation.order);
-    // scene.add(text)
-    // texts.push(text)
+
+    function addGate(num) {
+      setTimeout(function () {
+        var gate = createGate()
+        text.add(gate)
+      }, i * num)
+    }
   },
 
   destoryText: function (_id, scene) {
     var obj = scene.getObjectById(_id)
-    console.log(obj.name)
+      //console.log(obj.name)
+    this.destorySomething(obj, scene)
 
-    // var objCtrl = obj.parent
-    // console.log(parent)
+    var idToDestory = null;
+    for (var i = 0; i < ctrls.length; i++) {
+      if (ctrls[i].id === obj.id) {
+        ctrls.splice(i, 1)
+        idToDestory = i;
+        break
+      }
+    }
 
+    var text = texts[idToDestory];
+    this.destorySomething(text, scene);
+    texts.splice(idToDestory, 1);
+
+  },
+
+  destorySomething: function (obj, scene) {
     scene.remove(obj)
     obj.traverse(function (item) {
       if (item instanceof THREE.Mesh) {
@@ -438,14 +455,6 @@ module.exports = {
       }
       item = null
     })
-
-    for (var i = 0; i < ctrls.length; i++) {
-      if (ctrls[i].id === obj.id) {
-        ctrls.splice(i, 1)
-        break
-      }
-    }
-
   },
 
   changeText: function (_text, tag, id, scene, destoried) {
@@ -488,35 +497,12 @@ module.exports = {
 
     idonu = tube.parameters.path.getTangentAt(tForward);
 
-    // var segments = tube.tangents.length;
-    // var pickt = tForward * segments;
-    // var pick = Math.floor(pickt);
-    // var pickNext = (pick + 1) % segments;
-    // var binormal = new THREE.Vector3()
-    // var normal = new THREE.Vector3()
-    // binormal.subVectors(tube.binormals[pickNext], tube.binormals[pick]);
-    // binormal.multiplyScalar(pickt - pick).add(tube.binormals[pick]);
-
-    // var dir = tube.parameters.path.getTangentAt(tForward);
-
-    // normal.copy(binormal).cross(dir);
-    // var wat = tube.parameters.path.getTangentAt(tForward);
-
-    //idonu = tube.parameters.path.getTangent(tForward);
-
-    //
     inBetweenLove.position.copy(pos);
 
     lookForwardForLove = tube.parameters.path.getPointAt((tForward + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
 
     inBetweenLove.matrix.lookAt(inBetweenLove.position, lookForwardForLove, new THREE.Vector3());
     inBetweenLove.rotation.setFromRotationMatrix(inBetweenLove.matrix, inBetweenLove.rotation.order);
-
-    // test1.verticesNeedUpdate = true;
-    // test1.geometry.vertices[1] = new THREE.Vector3(0, 0, 0);
-    // var havean = normal.multiplyScalar(-1);
-    // test1.geometry.vertices[0] = binormal;
-
   },
 
   updateCamera: function () {
@@ -534,8 +520,6 @@ module.exports = {
     var t = (cameraCounter % loopTime) / loopTime;
     var pos = tube.parameters.path.getPointAt(t);
     pos.multiplyScalar(scale);
-
-    //var dir = tube.parameters.path.getTangent(t);
 
     splineCamera.position.copy(pos);
     var lookAt = tube.parameters.path.getPointAt((t + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
@@ -595,8 +579,7 @@ module.exports = {
     renderer.setSize(window.innerWidth, window.innerHeight);
   },
   splineCamera: splineCamera,
-  w: w,
-  isHitOrNot: isHitOrNot
+  w: w
 }
 },{"./createGate.js":"/Users/karen/Documents/my_project/inception/js/createGate.js","./createText.js":"/Users/karen/Documents/my_project/inception/js/createText.js","./event.js":"/Users/karen/Documents/my_project/inception/js/event.js","./splines.js":"/Users/karen/Documents/my_project/inception/js/splines.js","./vendor/CurveExtras.js":"/Users/karen/Documents/my_project/inception/js/vendor/CurveExtras.js"}],"/Users/karen/Documents/my_project/inception/js/main.js":[function(require,module,exports){
 var parse = require('./parse.js');
@@ -611,9 +594,64 @@ function fibonacci(num) {
   return fibonacci(num - 1) + fibonacci(num - 2);
 }
 
-var call = 'fibonacci(2)';
+// function quickSort(arr) {
+//   _quickSort(arr, 0, arr.length);
+// }
+
+// function _quickSort(arr, first, last) {
+
+//   if (first >= last) {
+
+//     return;
+
+//   } else {
+//     var pivot = partition(arr, first, last);
+
+//     _quickSort(arr, first, pivot - 1);
+//     _quickSort(arr, pivot, last);
+//   }
+// }
+
+// function partition(arr, first, last) {
+//   var pivot = arr[first];
+
+//   //console.log('! ' + pivot);
+
+//   var lessIndex = first + 1;
+
+//   for (var moreIndex = lessIndex; moreIndex < last; moreIndex++) {
+
+//     if (arr[moreIndex] <= pivot) {
+
+//       swap(arr, moreIndex, lessIndex);
+//       lessIndex++;
+
+//     }
+
+//   }
+
+//   swap(arr, first, lessIndex - 1)
+
+//   //console.log(arr);
+
+//   return lessIndex;
+
+// }
+
+// function swap(arr, x, y) {
+//   var temp = arr[y];
+//   arr[y] = arr[x];
+//   arr[x] = temp;
+// }
+
+var call = 'fibonacci(4)';
 
 var test = fibonacci.toString().concat(call);
+
+// var call = ['var test = [4, 6, 13, 6, 2, 7, 346, 15, 64, 246, 2, 6, 64];',
+//   'mergeSort(test);'
+// ].join('\n')
+// var test = _quickSort.toString().concat(call);
 var history = parse(test).history;
 
 //console.log(history)
