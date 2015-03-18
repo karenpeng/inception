@@ -29,6 +29,8 @@ var aheadOfLove = 200;
 // var es5 = require('./es5.js')
 // w.on('hit', es5.wat)
 var isHitOrNot = null;
+var test1;
+var idonu = new THREE.Vector3(0, 0, 0);
 
 module.exports = {
   init: function (scene) {
@@ -55,7 +57,7 @@ module.exports = {
       color: 0xffffff
     }));
     test.position.copy(splineCamera.position)
-    test.scale.set(0.5, 0.5, 0.5)
+    test.scale.set(0.1, 0.1, 0.1)
     inBetweenLove.add(test)
     scene.add(inBetweenLove)
 
@@ -70,28 +72,43 @@ module.exports = {
     planePP = createGate();
     //scene.add(planePP);
 
-    binormal = new THREE.Vector3();
-    normal = new THREE.Vector3();
-
     /*testing*/
     ball = new THREE.Mesh(new THREE.SphereGeometry(20, 20, 20), new THREE.MeshNormalMaterial)
     scene.add(ball)
+
+    // var tem = new THREE.Geometry();
+    // tem.vertices.push(new THREE.Vector3(0, 0, 0));
+    // tem.vertices.push(new THREE.Vector3(0, 0, 0));
+    // test1 = new THREE.Line(tem, new THREE.LineBasicMaterial({
+    //   color: 0xffffff
+    // }))
+    // test1.verticesNeedUpdate = true;
+    // inBetweenLove.add(test1)
 
   },
 
   render: function (scene, camera, renderer) {
     //var time = Date.now();
     //if (rollercoaster) {
+    // var tem = new THREE.Geometry();
+    // tem.vertices.push(new THREE.Vector3.addVectors(idonu.position, inBetweenLove.position));
+    // tem.vertices.push(inBetweenLove.position);
+
+    // test1 = new THREE.Line(tem, new THREE.LineBasicMaterial({
+    //   color: 0x0000ff
+    // }))
+    // scene.add(test1)
+
     var time = Date.now()
     this.updateCamera();
     this.updateForward();
     this.updateLove();
     if (texts.length > 0) {
       w.detect(this.isHit());
-      isHitOrNot = this.isHit();
+      //isHitOrNot = this.isHit();
     }
     tubeMesh.visible = visible;
-    forward.visible = visible;
+    forward.visible = true;
 
     planePP.lookAt(splineCamera.position);
     planePP.position.copy(splineCamera.position);
@@ -151,9 +168,6 @@ module.exports = {
 
   addText: function (_text, tag, scene, flag) {
     var text = createText(_text, tag);
-    var ctrl = new THREE.Object3D();
-    // var wat = forward.position;
-    // wat = wat.sub(splineCamera.position);
     if (speed === 1) {
       text.position.copy(forward.position);
     } else {
@@ -162,43 +176,22 @@ module.exports = {
     text.matrix.lookAt(text.position, lookForward, new THREE.Vector3(0, 0, 0));
     text.rotation.setFromRotationMatrix(text.matrix, text.rotation.order);
 
-    ctrl.position.copy(inBetweenLove.position)
-      //ctrl.matrix.lookAt(ctrl.position, lookForwardForLove, new THREE.Vector3(0, 0, 0));
-    ctrl.rotation.setFromRotationMatrix(ctrl.matrix, ctrl.rotation.order);
-    // var tempPosition = new THREE.Vector3();
-    // tempPosition = forward.position;
-    // console.log(splineCamera.position.x, splineCamera.position.y, splineCamera.position.z)
-    // console.log(forward.position.x, forward.position.y, forward.position.z)
-    // tempPosition = tempPosition.lerp(splineCamera.position, 0.2);
-    // console.log(tempPosition.x, tempPosition.y, tempPosition.z)
-    //   //tempPosition.matrix.lookAt(tempPosition.position, lookForward, new THREE.Vector3(0, 0, 0));
-    //   //tempPosition.rotation.setFromRotationMatrix(tempPosition.matrix, tempPosition.rotation.order);
-    //   //tempPosition=
-    // ctrl.position.copy(tempPosition);
-    // ctrl.matrix.lookAt(ctrl.position, lookForward, new THREE.Vector3(0, 0, 0));
-    // ctrl.rotation.setFromRotationMatrix(ctrl.matrix, ctrl.rotation.order);
-
-    // ctrl.add(text);
-    //texts.push(text);
-    ctrls.push(ctrl);
-    // scene.add(ctrl);
     texts.push(text);
     scene.add(text);
+
+    var ctrl = new THREE.Object3D()
+    ctrl.position.copy(text.position)
+    var test2 = new THREE.Mesh(new THREE.SphereGeometry(1), new THREE.MeshNormalMaterial())
+    test2.scale.set(0.2, 0.2, 0.2)
+      //test2.visivle = false;
+    ctrl.add(test2)
+    scene.add(ctrl)
+    ctrl.visible = false;
+    ctrls.push(ctrl)
   },
 
   destoryText: function (_index, scene) {
-    // var index = texts.length-1
-    // scene.remove(texts[index])
-    // texts[index].traverse(function (item) {
-    //   if (item instanceof THREE.Mesh) {
-    //     item.geometry.dispose()
-    //     item.material.dispose()
-    //   }
-    //   item = null
-    // })
-    // texts.pop()
     var index = texts.length - 1
-      //console.log('remvoing ' + texts[index])
     scene.remove(texts[index])
     texts[index].traverse(function (item) {
       if (item instanceof THREE.Mesh) {
@@ -207,42 +200,36 @@ module.exports = {
       }
       item = null
     })
+    texts.pop()
+    scene.remove(ctrls[index])
     ctrls[index].traverse(function (item) {
+      if (item instanceof THREE.Mesh) {
+        item.geometry.dispose()
+        item.material.dispose()
+      }
       item = null
     })
-    texts.pop()
+
     ctrls.pop()
   },
 
   changeText: function (_text, tag, index, scene) {
-    var index = ctrls.length - 1
+    var index = texts.length - 1
     this.destoryText(index, scene);
     this.addText(_text, tag, scene);
   },
 
   isHit: function () {
-    //var ray = dir;
-    var ray;
-    // if(speed ===1){
-    ray = idonu;
-    // }else if(speed === -1){
-    //   ray = idonu.multiplyScalar(-1);
-    //   console.log(ray.x, ray.y, ray.z)
-    // }else{
-    //   ray = new THREE.Vector3(0,0,0)
-    // }
-    //ray = idonu.multiplyScalar(-1);
-    //console.log(texts[texts.length - 1] instanceof THREE.Mesh)
-    //console.log(texts.length)
-    //console.log(texts.length)
-    //if(speed ==1)
-    var obj = [texts[texts.length - 1], texts[texts.length - 1]];
-    //if(speed ===-1)
-    //else var obj = [texts[texts.length - 2], texts[texts.length - 2]]
-    //var obj = [ctrls[ctrls.length - 1], ctrls[ctrls.length - 1]];
-    //raycaster.ray.set(splineCamera.position, ray);
+    var ray = idonu;
+
+    // var obj = [texts[texts.length - 1], texts[texts.length - 1]];
+    //console.log(obj[0].name)
+    var obj = [ctrls[texts.length - 1], ctrls[texts.length - 1]];
+
     raycaster.ray.set(inBetweenLove.position, ray);
+
     var intersects = raycaster.intersectObjects(obj, true);
+
     if (intersects.length > 0 && intersects[0].distance <= 100) {
       return intersects[0].object.name;
     }
@@ -258,7 +245,7 @@ module.exports = {
 
     lookForward = tube.parameters.path.getPointAt((tForward + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
 
-    forward.matrix.lookAt(forward.position, lookForward, normal);
+    forward.matrix.lookAt(forward.position, lookForward, new THREE.Vector3());
     forward.rotation.setFromRotationMatrix(forward.matrix, forward.rotation.order);
 
   },
@@ -268,13 +255,36 @@ module.exports = {
     var pos = tube.parameters.path.getPointAt(tForward);
     pos.multiplyScalar(scale);
 
-    idonu = tube.parameters.path.getTangentAt(tForward)
+    idonu = tube.parameters.path.getTangentAt(tForward);
+
+    // var segments = tube.tangents.length;
+    // var pickt = tForward * segments;
+    // var pick = Math.floor(pickt);
+    // var pickNext = (pick + 1) % segments;
+    // var binormal = new THREE.Vector3()
+    // var normal = new THREE.Vector3()
+    // binormal.subVectors(tube.binormals[pickNext], tube.binormals[pick]);
+    // binormal.multiplyScalar(pickt - pick).add(tube.binormals[pick]);
+
+    // var dir = tube.parameters.path.getTangentAt(tForward);
+
+    // normal.copy(binormal).cross(dir);
+    // var wat = tube.parameters.path.getTangentAt(tForward);
+
+    //idonu = tube.parameters.path.getTangent(tForward);
+
+    //
     inBetweenLove.position.copy(pos);
 
     lookForwardForLove = tube.parameters.path.getPointAt((tForward + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
 
-    inBetweenLove.matrix.lookAt(inBetweenLove.position, lookForwardForLove, normal);
+    inBetweenLove.matrix.lookAt(inBetweenLove.position, lookForwardForLove, new THREE.Vector3());
     inBetweenLove.rotation.setFromRotationMatrix(inBetweenLove.matrix, inBetweenLove.rotation.order);
+
+    // test1.verticesNeedUpdate = true;
+    // test1.geometry.vertices[1] = new THREE.Vector3(0, 0, 0);
+    // var havean = normal.multiplyScalar(-1);
+    // test1.geometry.vertices[0] = binormal;
 
   },
 
@@ -294,13 +304,12 @@ module.exports = {
     var pos = tube.parameters.path.getPointAt(t);
     pos.multiplyScalar(scale);
 
-    var dir = tube.parameters.path.getTangent(t);
-    //idonu = tube.parameters.path.getTangentAt(t)
+    //var dir = tube.parameters.path.getTangent(t);
 
     splineCamera.position.copy(pos);
     var lookAt = tube.parameters.path.getPointAt((t + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
 
-    splineCamera.matrix.lookAt(splineCamera.position, lookAt, normal);
+    splineCamera.matrix.lookAt(splineCamera.position, lookAt, new THREE.Vector3());
     splineCamera.rotation.setFromRotationMatrix(splineCamera.matrix, splineCamera.rotation.order);
 
   },
