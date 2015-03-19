@@ -2,7 +2,7 @@ var parse = require('./parse.js');
 //var incept = require('./incept.js');
 var graphic = require('./graphic.js');
 
-//require('./editor.js').init();
+require('./editor.js').init();
 
 function fibonacci(num) {
   if (num === 0) return 0;
@@ -10,7 +10,7 @@ function fibonacci(num) {
   return fibonacci(num - 1) + fibonacci(num - 2);
 }
 
-var call = 'fibonacci(2)';
+var call = 'fibonacci(3)';
 
 var test = fibonacci.toString().concat(call);
 

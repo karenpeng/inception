@@ -40,7 +40,7 @@ module.exports = {
     splineCamera = new THREE.PerspectiveCamera(84, window.innerWidth / window.innerHeight, 0.01, 1000);
     scene.add(splineCamera);
 
-    forward = new THREE.Mesh(new THREE.SphereGeometry(2), new THREE.MeshBasicMaterial({
+    forward = new THREE.Mesh(new THREE.SphereGeometry(0.2), new THREE.MeshBasicMaterial({
       color: 0xffffff
     }));
     forward.position.copy(splineCamera.position);
@@ -49,11 +49,10 @@ module.exports = {
     inBetweenLove = new THREE.Object3D()
     inBetweenLove.position.copy(splineCamera.position)
 
-    var test = new THREE.Mesh(new THREE.SphereGeometry(2), new THREE.MeshBasicMaterial({
+    var test = new THREE.Mesh(new THREE.SphereGeometry(0.2), new THREE.MeshBasicMaterial({
       color: 0xffffff
     }));
     test.position.copy(splineCamera.position)
-    test.scale.set(0.1, 0.1, 0.1)
     inBetweenLove.add(test)
     scene.add(inBetweenLove)
 
@@ -102,25 +101,7 @@ module.exports = {
       }
     }
 
-    if (gates.length > 0) {
-      //   console.log('sss')
-      gates.forEach(function (gate, index) {
-
-        //console.log(gate instanceof THREE.Mesh)
-        //console.log(gate instanceof THREE.Object3D)
-        //mat4 = new THREE.Matrix4()
-        //gate.applyMatrix(mat4)
-        //console.log(gate.matrixWorld.elements[0])
-        //     if (gate.matrixWorld.elements[0] > 4) {
-        //       // scene.remove(gate)
-        //       // gate.forEach(function (child) {
-        //       //   child.dispose()
-        //       // })
-        //       // gate = null
-        //       // gates.splice(index, 1)
-        //     }
-      });
-    }
+    //console.log(gates.length)
 
     renderer.render(scene, rollercoaster ? splineCamera : camera);
   },
@@ -181,17 +162,20 @@ module.exports = {
 
     var gate = createGate()
       //text.add(gate)
-    for (var i = 0; i < gateLayers; i++) {
-      var self = this;
-      setTimeout(function () {
-        self.addGate(scene);
-      }, i * 100)
+    if (speed === 1) {
+      for (var i = 0; i < gateLayers; i++) {
+        var self = this;
+        setTimeout(function () {
+          self.addGate(scene);
+        }, i * 100)
+      }
     }
 
   },
 
   destoryText: function (_id, scene) {
     var obj = scene.getObjectById(_id)
+      //console.log(obj)
       //console.log(obj.name)
     this.destorySomething(obj, scene)
 
@@ -213,19 +197,22 @@ module.exports = {
       this.destorySomething(gate, scene);
     }
     gates.splice(indexToDestory * gateLayers, gateLayers);
-    console.log(gates.length)
+    // console.log(gates.length)
 
   },
 
   destorySomething: function (obj, scene) {
+    //console.log(obj)
     scene.remove(obj)
-    obj.traverse(function (item) {
-      if (item instanceof THREE.Mesh) {
-        item.geometry.dispose()
-        item.material.dispose()
-      }
-      item = null
-    })
+    if (obj.children !== undefined) {
+      obj.traverse(function (item) {
+        if (item instanceof THREE.Mesh) {
+          item.geometry.dispose()
+          item.material.dispose()
+        }
+        item = null
+      })
+    }
   },
 
   changeText: function (_text, tag, id, scene, destoried) {
@@ -345,5 +332,6 @@ module.exports = {
   },
   splineCamera: splineCamera,
   w: w,
-  tubeMesh: tubeMesh
+  tubeMesh: tubeMesh,
+  gateLayers: gateLayers
 }

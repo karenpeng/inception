@@ -13,20 +13,27 @@ function Controller(_history) {
 
     //hit 'return 1' or hit 'return 0' or 'return fib(n-1) + fib(n-2)'
     if (flag === 1) {
+      graphic.destoryText(info.id, stage.scene)
+      graphic.goBackward()
       if (info.name === 'return fibonacci(num - 1) + fibonacci(num - 2);') {
         flag = 3;
       } else {
-        flag = 2
+        flag = 2;
       }
-      graphic.destoryText(info.id, stage.scene)
-      graphic.goBackward()
-      graphic.w.isObserving = true;
+      setTimeout(function () {
+        graphic.w.isObserving = true;
+      }, 100);
 
+      //after 'return 0' or 'return 1'
     } else if (flag === 2) {
-
-      flag = 0;
-      graphic.pause()
+      //flag = 0;
+      graphic.pause();
       graphic.changeText(task.value, task.string, info.id, stage.scene, false);
+      for (var i = 10; i < graphic.gateLayers + 10; i++) {
+        setTimeout(function () {
+          graphic.addGate(stage.scene);
+        }, i * 100)
+      }
       setTimeout(function () {
         next();
       }, 1000);
@@ -38,12 +45,19 @@ function Controller(_history) {
       if (!info.destoryable) {
         graphic.destoryText(info.id, stage.scene)
         graphic.goBackward()
-        graphic.w.isObserving = true;
+        setTimeout(function () {
+          graphic.w.isObserving = true;
+        }, 100);
       } else {
         flag = 0;
-        console.log('ouch!')
+        //console.log('ouch!')
         graphic.pause()
         graphic.changeText(task.value, task.string, info.id, stage.scene, false)
+        for (var i = 10; i < graphic.gateLayers + 10; i++) {
+          setTimeout(function () {
+            graphic.addGate(stage.scene);
+          }, i * 100)
+        }
         setTimeout(function () {
           next();
         }, 1000);
@@ -60,18 +74,25 @@ function Controller(_history) {
     }
 
     graphic.goForward();
-    task = history.shift()
+    task = history.shift();
 
     if (task.string === undefined) {
+
       graphic.addText(task.value, task.string, stage.scene, true);
+      flag = 0;
+      graphic.w.isObserving = false;
       setTimeout(function () {
         next();
       }, 1000);
 
     } else {
+
+      graphic.addText(task.string, task.string, stage.scene, true);
       flag = 1;
-      graphic.addText(task.string, task.string, stage.scene, true)
-      graphic.w.isObserving = true;
+      setTimeout(function () {
+        graphic.w.isObserving = true;
+      }, 100);
+
     }
   }
 

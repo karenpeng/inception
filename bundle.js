@@ -129,6 +129,41 @@ module.exports = {
   paramNumber: 0,
   history: []
 }
+},{}],"/Users/karen/Documents/my_project/inception/js/editor.js":[function(require,module,exports){
+module.exports = {
+
+  init: function () {
+    var editor1 = ace.edit("editor1");
+    editor1.setTheme("ace/theme/monokai");
+    editor1.getSession().setMode("ace/mode/javascript");
+
+    var editor2 = ace.edit("editor2");
+    editor2.setTheme("ace/theme/monokai");
+    editor2.getSession().setMode("ace/mode/javascript");
+  },
+
+  getValue: function (name) {
+    switch (name) {
+    case '1':
+      return editor1.getValue();
+    case '2':
+      return editor2.getValue();
+    }
+  },
+
+  getLineNum: function (string) {
+    var lines = editor1.session.getAllLines();
+    var stringNum = [];
+    for (var i = 0; i < lines.length; i++) {
+      if (lines[i].indexOf(string) !== -1) stringNum.push(i);
+    }
+    return stringNum;
+  },
+
+  addMarker: function () {
+
+  }
+}
 },{}],"/Users/karen/Documents/my_project/inception/js/es5.js":[function(require,module,exports){
 var graphic = require('./graphic.js');
 var stage = require('./stage.js');
@@ -145,20 +180,27 @@ function Controller(_history) {
 
     //hit 'return 1' or hit 'return 0' or 'return fib(n-1) + fib(n-2)'
     if (flag === 1) {
+      graphic.destoryText(info.id, stage.scene)
+      graphic.goBackward()
       if (info.name === 'return fibonacci(num - 1) + fibonacci(num - 2);') {
         flag = 3;
       } else {
-        flag = 2
+        flag = 2;
       }
-      graphic.destoryText(info.id, stage.scene)
-      graphic.goBackward()
-      graphic.w.isObserving = true;
+      setTimeout(function () {
+        graphic.w.isObserving = true;
+      }, 100);
 
+      //after 'return 0' or 'return 1'
     } else if (flag === 2) {
-
-      flag = 0;
-      graphic.pause()
+      //flag = 0;
+      graphic.pause();
       graphic.changeText(task.value, task.string, info.id, stage.scene, false);
+      for (var i = 10; i < graphic.gateLayers + 10; i++) {
+        setTimeout(function () {
+          graphic.addGate(stage.scene);
+        }, i * 100)
+      }
       setTimeout(function () {
         next();
       }, 1000);
@@ -170,12 +212,19 @@ function Controller(_history) {
       if (!info.destoryable) {
         graphic.destoryText(info.id, stage.scene)
         graphic.goBackward()
-        graphic.w.isObserving = true;
+        setTimeout(function () {
+          graphic.w.isObserving = true;
+        }, 100);
       } else {
         flag = 0;
-        console.log('ouch!')
+        //console.log('ouch!')
         graphic.pause()
         graphic.changeText(task.value, task.string, info.id, stage.scene, false)
+        for (var i = 10; i < graphic.gateLayers + 10; i++) {
+          setTimeout(function () {
+            graphic.addGate(stage.scene);
+          }, i * 100)
+        }
         setTimeout(function () {
           next();
         }, 1000);
@@ -192,18 +241,25 @@ function Controller(_history) {
     }
 
     graphic.goForward();
-    task = history.shift()
+    task = history.shift();
 
     if (task.string === undefined) {
+
       graphic.addText(task.value, task.string, stage.scene, true);
+      flag = 0;
+      graphic.w.isObserving = false;
       setTimeout(function () {
         next();
       }, 1000);
 
     } else {
+
+      graphic.addText(task.string, task.string, stage.scene, true);
       flag = 1;
-      graphic.addText(task.string, task.string, stage.scene, true)
-      graphic.w.isObserving = true;
+      setTimeout(function () {
+        graphic.w.isObserving = true;
+      }, 100);
+
     }
   }
 
@@ -281,7 +337,7 @@ module.exports = {
     splineCamera = new THREE.PerspectiveCamera(84, window.innerWidth / window.innerHeight, 0.01, 1000);
     scene.add(splineCamera);
 
-    forward = new THREE.Mesh(new THREE.SphereGeometry(2), new THREE.MeshBasicMaterial({
+    forward = new THREE.Mesh(new THREE.SphereGeometry(0.2), new THREE.MeshBasicMaterial({
       color: 0xffffff
     }));
     forward.position.copy(splineCamera.position);
@@ -290,11 +346,10 @@ module.exports = {
     inBetweenLove = new THREE.Object3D()
     inBetweenLove.position.copy(splineCamera.position)
 
-    var test = new THREE.Mesh(new THREE.SphereGeometry(2), new THREE.MeshBasicMaterial({
+    var test = new THREE.Mesh(new THREE.SphereGeometry(0.2), new THREE.MeshBasicMaterial({
       color: 0xffffff
     }));
     test.position.copy(splineCamera.position)
-    test.scale.set(0.1, 0.1, 0.1)
     inBetweenLove.add(test)
     scene.add(inBetweenLove)
 
@@ -343,25 +398,7 @@ module.exports = {
       }
     }
 
-    if (gates.length > 0) {
-      //   console.log('sss')
-      gates.forEach(function (gate, index) {
-
-        //console.log(gate instanceof THREE.Mesh)
-        //console.log(gate instanceof THREE.Object3D)
-        //mat4 = new THREE.Matrix4()
-        //gate.applyMatrix(mat4)
-        //console.log(gate.matrixWorld.elements[0])
-        //     if (gate.matrixWorld.elements[0] > 4) {
-        //       // scene.remove(gate)
-        //       // gate.forEach(function (child) {
-        //       //   child.dispose()
-        //       // })
-        //       // gate = null
-        //       // gates.splice(index, 1)
-        //     }
-      });
-    }
+    //console.log(gates.length)
 
     renderer.render(scene, rollercoaster ? splineCamera : camera);
   },
@@ -422,17 +459,20 @@ module.exports = {
 
     var gate = createGate()
       //text.add(gate)
-    for (var i = 0; i < gateLayers; i++) {
-      var self = this;
-      setTimeout(function () {
-        self.addGate(scene);
-      }, i * 100)
+    if (speed === 1) {
+      for (var i = 0; i < gateLayers; i++) {
+        var self = this;
+        setTimeout(function () {
+          self.addGate(scene);
+        }, i * 100)
+      }
     }
 
   },
 
   destoryText: function (_id, scene) {
     var obj = scene.getObjectById(_id)
+      //console.log(obj)
       //console.log(obj.name)
     this.destorySomething(obj, scene)
 
@@ -454,19 +494,22 @@ module.exports = {
       this.destorySomething(gate, scene);
     }
     gates.splice(indexToDestory * gateLayers, gateLayers);
-    console.log(gates.length)
+    // console.log(gates.length)
 
   },
 
   destorySomething: function (obj, scene) {
+    //console.log(obj)
     scene.remove(obj)
-    obj.traverse(function (item) {
-      if (item instanceof THREE.Mesh) {
-        item.geometry.dispose()
-        item.material.dispose()
-      }
-      item = null
-    })
+    if (obj.children !== undefined) {
+      obj.traverse(function (item) {
+        if (item instanceof THREE.Mesh) {
+          item.geometry.dispose()
+          item.material.dispose()
+        }
+        item = null
+      })
+    }
   },
 
   changeText: function (_text, tag, id, scene, destoried) {
@@ -586,14 +629,15 @@ module.exports = {
   },
   splineCamera: splineCamera,
   w: w,
-  tubeMesh: tubeMesh
+  tubeMesh: tubeMesh,
+  gateLayers: gateLayers
 }
 },{"./createGate.js":"/Users/karen/Documents/my_project/inception/js/createGate.js","./createText.js":"/Users/karen/Documents/my_project/inception/js/createText.js","./event.js":"/Users/karen/Documents/my_project/inception/js/event.js","./splines.js":"/Users/karen/Documents/my_project/inception/js/splines.js","./vendor/CurveExtras.js":"/Users/karen/Documents/my_project/inception/js/vendor/CurveExtras.js"}],"/Users/karen/Documents/my_project/inception/js/main.js":[function(require,module,exports){
 var parse = require('./parse.js');
 //var incept = require('./incept.js');
 var graphic = require('./graphic.js');
 
-//require('./editor.js').init();
+require('./editor.js').init();
 
 function fibonacci(num) {
   if (num === 0) return 0;
@@ -601,7 +645,7 @@ function fibonacci(num) {
   return fibonacci(num - 1) + fibonacci(num - 2);
 }
 
-var call = 'fibonacci(2)';
+var call = 'fibonacci(3)';
 
 var test = fibonacci.toString().concat(call);
 
@@ -643,7 +687,7 @@ window.onkeydown = function (e) {
     control(history)
   }
 }
-},{"./es5.js":"/Users/karen/Documents/my_project/inception/js/es5.js","./graphic.js":"/Users/karen/Documents/my_project/inception/js/graphic.js","./parse.js":"/Users/karen/Documents/my_project/inception/js/parse.js"}],"/Users/karen/Documents/my_project/inception/js/parse.js":[function(require,module,exports){
+},{"./editor.js":"/Users/karen/Documents/my_project/inception/js/editor.js","./es5.js":"/Users/karen/Documents/my_project/inception/js/es5.js","./graphic.js":"/Users/karen/Documents/my_project/inception/js/graphic.js","./parse.js":"/Users/karen/Documents/my_project/inception/js/parse.js"}],"/Users/karen/Documents/my_project/inception/js/parse.js":[function(require,module,exports){
 // function fibonacci(num) {
 // _enter(3,arguments);
 // if (num === 0) return _exit(0,0, "return 0;");;
