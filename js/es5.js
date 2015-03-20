@@ -1,56 +1,90 @@
 var graphic = require('./graphic.js');
+var stage = require('./stage.js');
 //var w = graphic.Widget();
 
-module.exports = function (history) {
-  var index = 0;
-  var history = history;
+module.exports = Controller;
 
-  //wait until hits it
-  graphic.w.on('hit', function () {
-    if (history[index].string !== undefined) {
-      changeValue(history[index]);
-      index++;
+function Controller(_history) {
+  var history = _history;
+  var flag = 0;
+  var task;
+
+  graphic.w.on('hit', function (info) {
+
+    //hit 'return 1' or hit 'return 0' or 'return fib(n-1) + fib(n-2)'
+    if (flag === 1) {
+      graphic.destoryText(info.id, stage.scene)
+      graphic.goBackward()
+      if (info.name === 'return fibonacci(num - 1) + fibonacci(num - 2);') {
+        flag = 3;
+      } else {
+        flag = 2;
+      }
+      setTimeout(function () {
+        graphic.w.isObserving = true;
+      }, 200);
+
+      //after 'return 0' or 'return 1'
+    } else if (flag === 2) {
+      //flag = 0;
+      graphic.pause();
+      graphic.changeText(task.value, task.string, info.id, stage.scene, false);
+      setTimeout(function () {
+        next();
+      }, 1000);
+
     }
+
+    //hits 1 and 0 and then fib(2)
+    else if (flag === 3) {
+      if (!info.destoryable) {
+        graphic.destoryText(info.id, stage.scene)
+        graphic.goBackward()
+        setTimeout(function () {
+          graphic.w.isObserving = true;
+        }, 200);
+      } else {
+        flag = 0;
+        //console.log('ouch!')
+        graphic.pause()
+        graphic.changeText(task.value, task.string, info.id, stage.scene, false)
+        setTimeout(function () {
+          next();
+        }, 1000);
+      }
+    }
+
   });
 
-  this.next = function () {
-    //if (!history.length) return;
-    if (history[index].string === undefined) {
-      zoomIn(history[index]);
-      index++;
-      graphic.w.alarm = false;
+  function next() {
+
+    if (history.length < 1) {
+      graphic.goBackward();
+      return;
     }
-    var self = this;
-    setTimeout(function () {
-      self.next();
-    }, 1000);
+
+    graphic.goForward();
+    task = history.shift();
+
+    if (task.string === undefined) {
+
+      graphic.addText(task.value, task.string, stage.scene, true);
+      flag = 0;
+      graphic.w.isObserving = false;
+      setTimeout(function () {
+        next();
+      }, 1000);
+
+    } else {
+
+      graphic.addText(task.string, task.string, stage.scene, true);
+      flag = 1;
+      setTimeout(function () {
+        graphic.w.isObserving = true;
+      }, 100);
+
+    }
   }
-}
 
-function zoomIn(history) {
-  //zoomIn another world
-  //graphic.zoomIn(value);
-  //console.log('wat ' + Object.keys(graphic))
-  graphic.speed = 1;
-  graphic.addText(history.value, history.string);
-  for (var i = 0; i < 10; i++) {
-    setTimeout(function () {
-      graphic.addGate();
-    }, i * 400);
-  }
-}
-
-function changeValue(history, callback) {
-  graphic.speed = 0;
-  graphic.changeText(history.value, history.string);
-  // setTimeout(function () {
-  //   callback();
-  // }, 2000);
-  zoomOut();
-}
-
-function zoomOut() {
-  //get back to the outter world
-  //also change the value
-  graphic.speed = -1;
+  next();
 }

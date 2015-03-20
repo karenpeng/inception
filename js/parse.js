@@ -1,3 +1,11 @@
+// function fibonacci(num) {
+// _enter(3,arguments);
+// if (num === 0) return _exit(0,0, "return 0;");;
+// if (num === 1) return _exit(1,1, "return 1;");;
+// return _exit(2,fibonacci(num - 1) + fibonacci(num - 2),
+// "return fibonacci(num - 1) + fibonacci(num - 2);");_exit(3);}
+
+
 var falafel = require('falafel');
 var inspect = require('object-inspect');
 
@@ -35,7 +43,7 @@ module.exports = function (src) {
     }
   }).toString();
 
-  // console.log(out);
+  console.log(out);
   // console.log(nodes);
 
   var stack = [];

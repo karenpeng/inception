@@ -1,370 +1,397 @@
 require('./vendor/CurveExtras.js');
-//require('./vendor/stats.js');
-var createGate = require('./createGate.js');
-var createText = require('./createText.js');
+var createGate = require('./createGate.js')
+var createText = require('./createText.js')
 
-var camera, scene, stats, splineCamera, cameraHelper, cameraEye, scale,
-  splines, tube, material, tubeMesh,
-  binormal, normal, lookForward,
-  forward, raycaster,
-  renderer, rollercoaster, splineIndex;
-var planePP;
-var visible = false;
-var magicNum = 1;
-exports.speed = 1;
-var speedRecord = exports.speed;
-var cameraCounter = 0;
-var loopTime = 10000;
-var texts = [];
-var dir;
+var splineCamera, forward, inBetweenLove,
+  splines, tube, material, tubeMesh, raycaster;
 
-function init() {
+var rollercoaster = false
+var splineIndex = 3
 
-  rollercoaster = true;
-  splineIndex = 3;
-  targetRotation = 0;
-  scale = 1;
-  raycaster = new THREE.Raycaster();
-  var container = document.createElement('div');
-  // container.style.position = 'absolute';
-  // container.style.left = '440px';
-  // container.style.width = (window.innerWidth - 440) + 'px';
-  document.body.appendChild(container);
+var visible = false
+var magicNum = 1
 
-  scene = new THREE.Scene();
-  //scene.fog = new THREE.FogExp2(0xefd1b5, 1, 1);
-  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
-  //camera.position.z = 100;
-  camera.position.set(0, 20, 200);
+var speed = 1
+var speedRecord = speed
+var cameraCounter = 0
 
-  splineCamera = new THREE.PerspectiveCamera(84, window.innerWidth / window.innerHeight, 0.01, 1000);
+var loopTime = 10000
+var aheadOfTime = 800
+var aheadOfLove = 200
 
-  scene.add(splineCamera);
+var collisionPoints = []
+var scaleControllers = []
+var gateLayers = 3
+  // var texts = []
+  // var gates = []
+  // var gates = []
+var ball = null
+var scalar = 1
+var expo = 1
 
-  //var light6 = new THREE.DirectionalLight(0xeeeeff, .8);
-  //in case you move the camera
-  //i still think that the camera should move freely
-  //splineCamera.add(light6);
-  //
-  forward = new THREE.Mesh(new THREE.SphereGeometry(2), new THREE.MeshBasicMaterial({
-    color: 0xffffff
-  }));
-  forward.position.copy(splineCamera.position);
-  scene.add(forward);
+var Widget = require('./event.js')
+var w = Widget()
 
-  cameraHelper = new THREE.CameraHelper(splineCamera);
-  scene.add(cameraHelper);
+// var lookAt = new THREE.Vector3()
+// var lookForward = new THREE.Vector3()
+// var idonu = new THREE.Vector3()
+// var lookForwardForLove = new THREE.Vector3()
+//var lookAt;
+var lookForward;
+var idonu = new THREE.Vector3()
+var lookForwardForLove;
 
-  cameraEye = new THREE.Mesh(new THREE.SphereGeometry(2), new THREE.MeshBasicMaterial({
-    color: 0xdddddd
-  }));
-  scene.add(cameraEye);
+module.exports = {
+  init: function (scene) {
 
-  cameraHelper.visible = true;
-  cameraEye.visible = true;
+    raycaster = new THREE.Raycaster()
 
-  // var ambientLight = new THREE.AmbientLight(0x000000);
-  // scene.add(ambientLight);
+    splineCamera = new THREE.PerspectiveCamera(84, window.innerWidth / window.innerHeight, 0.01, 1000)
+    scene.add(splineCamera)
 
-  // var lights = [];
-  // lights[0] = new THREE.PointLight(0xffffff, 1, 0);
-  // lights[1] = new THREE.PointLight(0xffffff, 1, 0);
-  // lights[2] = new THREE.PointLight(0xffffff, 1, 0);
+    forward = new THREE.Mesh(new THREE.SphereGeometry(0.2), new THREE.MeshBasicMaterial({
+      color: 0xffffff
+    }));
+    forward.position.copy(splineCamera.position)
+    scene.add(forward)
 
-  // lights[0].position.set(0, 200, 0);
-  // lights[1].position.set(100, 200, 100);
-  // lights[2].position.set(-100, -200, -100);
+    inBetweenLove = new THREE.Object3D()
+    inBetweenLove.position.copy(splineCamera.position)
 
-  // scene.add(lights[0]);
-  // scene.add(lights[1]);
-  // scene.add(lights[2]);
+    var test = new THREE.Mesh(new THREE.SphereGeometry(0.2), new THREE.MeshBasicMaterial({
+      color: 0xffffff
+    }));
+    test.position.copy(splineCamera.position)
+    inBetweenLove.add(test)
+    scene.add(inBetweenLove)
 
-  splines = require('./splines.js');
+    splines = require('./splines.js');
 
-  tube = new THREE.TubeGeometry(splines[splineIndex], 100, 1, 4, true);
-  //var geometry = new THREE.TorusKnotGeometry(0.5 - 0.12, 0.12);
-  material = new THREE.MeshNormalMaterial();
-  //material = new THREE.MeshDepthMaterial();
-  // material = new THREE.MeshPhongMaterial({
-  //   color: 0xeeff77,
-  //   emissive: 0xeeff77
-  // });
-  tubeMesh = new THREE.Mesh(tube, material);
-  tubeMesh.scale.set(scale, scale, scale);
-  scene.add(tubeMesh);
+    tube = new THREE.TubeGeometry(splines[splineIndex], 100, 1, 4, true)
+    material = new THREE.MeshNormalMaterial()
+    tubeMesh = new THREE.Mesh(tube, material)
+    scene.add(tubeMesh)
 
-  // var bgTube = new THREE.TubeGeometry(splines[4], 100, 2, 4, true);
-  // var mesh = new THREE.Mesh(bgTube, material);
-  //parent.add(mesh);
+    /*testing*/
+    ball = new THREE.Mesh(new THREE.SphereGeometry(20, 20, 20), new THREE.MeshNormalMaterial)
+    scene.add(ball)
 
-  planePP = createGate();
-  scene.add(planePP);
+  },
 
-  // window.addEventListener('resize', onWindowResize, false);
-  binormal = new THREE.Vector3();
-  normal = new THREE.Vector3();
+  render: function (scene, camera, renderer) {
 
-  /*testing*/
+    this.updateTime()
+    this.updateForward()
+    this.updateLove()
 
-  renderer = new THREE.WebGLRenderer({
-    antialias: true
-  });
-  //renderer.setClearColor(0xfafaff);
-  //renderer.setClearColor(0x2cc8ff);
-  renderer.setSize(window.innerWidth, window.innerHeight);
-
-  container.appendChild(renderer.domElement);
-
-  stats = new Stats();
-  console.log(stats)
-  stats.domElement.style.position = 'absolute';
-  stats.domElement.style.top = '0px';
-  stats.domElement.style.right = '0px';
-  container.appendChild(stats.domElement);
-
-  window.addEventListener('resize', onWindowResize, false);
-
-  window.onkeydown = function (e) {
-    //space
-    if (e.which === 32) {
-      e.preventDefault();
-      switchCamera();
+    if (collisionPoints.length > 0) {
+      w.detect(this.isHit());
     }
-    //s
-    if (e.which === 83) {
-      e.preventDefault();
-      switchSpline();
+    tubeMesh.visible = visible;
+
+    //expo *= 1.00000000000000000000000000000000000000000000001
+    //scalar += expo
+    scalar += 0.1
+      // ball.scale = new THREE.Vector3(scalar, scalar, scalar)
+    if (ball !== null) {
+      ball.scale.set(scalar, scalar, scalar)
+        //console.log(ball.matrixWorld.elements[0])
+      if (ball.matrixWorld.elements[0] > 10) {
+        console.log('by-bye ball')
+        scene.remove(ball)
+        ball.traverse(function (item) {
+          if (item instanceof THREE.Mesh) {
+            item.geometry.dispose()
+            item.material.dispose()
+          }
+        })
+        ball = null
+      }
     }
-    //a
-    if (e.which === 65) {
-      e.preventDefault();
-      addGate();
+
+    // if (scaleControllers.length) {
+    //   console.log(scaleControllers[scaleControllers.length - 1].children.length)
+    // }
+
+    renderer.render(scene, rollercoaster ? splineCamera : camera);
+  },
+
+  addGate: function (scene, index) {
+
+    //scaleControllers[index].add(gate)
+  },
+
+  addText: function (_text, tag, scene, _destoried) {
+
+    //add collistionPoint
+    var collisionPoint = new THREE.Mesh(new THREE.SphereGeometry(0.2), new THREE.MeshNormalMaterial())
+    collisionPoint.name = tag
+    collisionPoint.visible = false
+    collisionPoint.destoryable = _destoried
+    this.getPositionAtTheMoment(collisionPoint, 'child')
+    scene.add(collisionPoint)
+    collisionPoints.push(collisionPoint)
+
+    //add text and gates for every ctrl
+    var ctrl = new THREE.Object3D()
+      //var ctrl = new THREE.Mesh(new THREE.SphereGeometry(0.2), new THREE.MeshNormalMaterial())
+    scaleControllers.push(ctrl)
+    this.getPositionAtTheMoment(ctrl, 'parent')
+
+    var text = createText(_text, tag)
+    this.getPositionAtTheMoment(text, 'child')
+    text.position.copy(new THREE.Vector3())
+    ctrl.add(text)
+
+    var lastPosition = new THREE.Vector3()
+    lastPosition.copy(this.getPositionAtTheMoment(lastPosition, 'copy'))
+
+    var beginTime;
+    if (speed === 1) {
+      beginTime = 0;
+    } else {
+      beginTime = 1000;
     }
-    //b
-    if (e.which === 66) {
-      e.preventDefault();
-      visible = !visible;
+
+    for (var i = 0; i < gateLayers; i++) {
+      var self = this;
+
+      setTimeout(function () {
+        //self.addGate(scene, scaleControllers.length - 1);
+        var gate = createGate()
+        self.getPositionAtTheMoment(gate, 'child')
+
+        var tempPosition = new THREE.Vector3()
+        tempPosition.copy(self.getPositionAtTheMoment(tempPosition, 'copy'))
+
+        // console.log(lastPosition.x)
+        // console.log(tempPosition.x)
+
+        //gate.position.copy(new THREE.Vector3())
+        var location = new THREE.Vector3()
+        location.subVectors(tempPosition, lastPosition)
+          //location.multiplyScalar(4)
+        gate.position.copy(location)
+          //console.log(location.x)
+        ctrl.add(gate)
+
+        lastPosition.copy(tempPosition)
+      }, i * 300 + beginTime)
+
     }
-    //c
-    if (e.which === 67) {
-      e.preventDefault();
-      //reverse = !reverse;
-      if (exports.speed === 1) exports.speed = -1;
-      else if (exports.speed === -1) exports.speed = 1;
-      else if (exports.speed === 0) exports.speed = speedRecord;
+
+    scene.add(ctrl)
+
+  },
+
+  getPositionAtTheMoment: function (objName, hierarchy) {
+    switch (hierarchy) {
+
+    case 'child':
+      if (speed === 1) {
+        objName.position.copy(forward.position)
+        objName.matrix.lookAt(objName.position, lookForward, new THREE.Vector3(0, 0, 0))
+          //objName.lookAt(lookForward)
+      } else {
+        objName.position.copy(inBetweenLove.position)
+        objName.matrix.lookAt(objName.position, lookForwardForLove, new THREE.Vector3(0, 0, 0))
+          //objName.lookAt(lookForwardForLove)
+      }
+
+      objName.rotation.setFromRotationMatrix(objName.matrix, objName.rotation.order)
+
+      break
+
+    case 'parent':
+      if (speed === 1) {
+        objName.position.copy(forward.position)
+          //objName.matrix.lookAt(objName.position, lookForward, new THREE.Vector3(0, 0, 0))
+      } else {
+        objName.position.copy(inBetweenLove.position)
+          //objName.matrix.lookAt(objName.position, lookForwardForLove, new THREE.Vector3(0, 0, 0))
+      }
+
+      objName.rotation.setFromRotationMatrix(objName.matrix, objName.rotation.order)
+      break
+      // if (speed === 1) {
+      //   objName.position.copy(forward.position)
+      //   objName.matrix.lookAt(objName.position, lookForward, new THREE.Vector3(0, 0, 0))
+      // } else {
+      //   objName.position.copy(inBetweenLove.position)
+      //   objName.matrix.lookAt(objName.position, lookForwardForLove, new THREE.Vector3(0, 0, 0))
+      // }
+      // objName.rotation.setFromRotationMatrix(objName.matrix, objName.rotation.order)
+    case 'copy':
+      return speed === 1 ? forward.position : inBetweenLove.position
+      break
     }
-    //d
-    if (e.which === 68) {
-      e.preventDefault();
-      exports.speed = 0;
+  },
+
+  destoryText: function (_id, scene) {
+    var obj = scene.getObjectById(_id)
+      //console.log(obj)
+      //console.log(obj.name)
+    this.destorySomething(obj, scene)
+
+    var indexToDestory = null
+    for (var i = 0; i < collisionPoints.length; i++) {
+      if (collisionPoints[i].id === obj.id) {
+        collisionPoints.splice(i, 1)
+        indexToDestory = i
+        break
+      }
     }
-    //e
-    if (e.which === 69) {
-      e.preventDefault();
-      addText();
+
+    var ctrl = scaleControllers[indexToDestory]
+    this.destorySomething(ctrl, scene)
+    scaleControllers.splice(indexToDestory, 1)
+  },
+
+  destorySomething: function (obj, scene) {
+    //console.log(obj)
+    scene.remove(obj)
+      //if (obj.children !== undefined) {
+    obj.traverse(function (item) {
+        if (item instanceof THREE.Mesh) {
+          item.geometry.dispose()
+          item.material.dispose()
+        }
+        item = null
+      })
+      //}
+  },
+
+  changeText: function (_text, tag, id, scene, destoried) {
+    this.destoryText(id, scene)
+    this.addText(_text, tag, scene, destoried)
+  },
+
+  isHit: function () {
+    var ray = idonu
+    var obj = collisionPoints
+
+    raycaster.ray.set(inBetweenLove.position, ray)
+
+    var intersects = raycaster.intersectObjects(obj, true)
+
+    if (intersects.length > 0 && intersects[0].distance <= 100) {
+      return intersects[0].object
     }
-  }
+    return null
+  },
 
-}
+  updateForward: function () {
 
-//module.exports = {
-//  addGate: function () {
-function addGate() {
-  var gate = createGate();
-  //gate.lookAt(splineCamera.position);
-  gate.position.copy(forward.position);
-  gate.matrix.lookAt(gate.position, lookForward, new THREE.Vector3(0, 0, 0));
-  gate.rotation.setFromRotationMatrix(gate.matrix, gate.rotation.order);
-  scene.add(gate);
-}
-exports.addGate = addGate;
-//}
-function addText(_text, _tag) {
-  var text = createText(_text, _tag);
-  text.position.copy(forward.position);
-  text.matrix.lookAt(text.position, lookForward, new THREE.Vector3(0, 0, 0));
-  text.rotation.setFromRotationMatrix(text.matrix, text.rotation.order);
-  texts.push(text);
-  scene.add(text);
-}
-exports.forward = forward;
-exports.lookForward = lookForward;
-exports.texts = texts;
-exports.scene = scene;
-exports.addText = addText;
+    //this.updateCamera(forward, cameraCounter, aheadOfTime, lookForward)
+    var t = ((cameraCounter + aheadOfTime) % loopTime) / loopTime;
+    var pos = tube.parameters.path.getPointAt(t);
 
-function destoryText() {
-  scene.remove(texts[texts.length - 1]);
-  texts[texts.length - 1].children.forEach(function (item) {
-    item.dispose();
-  })
-  texts[texts.length - 1] = null;
-}
+    forward.position.copy(pos);
 
-function changeText(_text, _tag) {
-  destoryText();
-  addText(_text, _tag);
-}
-exports.changeText = changeText;
+    lookForward = tube.parameters.path.getPointAt((t + magicNum / tube.parameters.path.getLength()) % 1)
 
-// function isHit(obj) {
-//   var ray = dir;
-//   raycaster.ray.set(splineCamera, ray);
-//   var intersects = raycaster.intersectObjects(obj);
-//   if (intersects.length > 0 && intersects[0].distance <= 10) {
-//     return intersects[0].object.name;
-//   }
-//   return null;
-// }
-//
-function isHit() {
-  var ray = dir;
-  //console.log(texts[texts.length - 1] instanceof THREE.Mesh)
-  var obj = [texts[texts.length - 1], texts[texts.length - 1]];
-  raycaster.ray.set(splineCamera.position, ray);
-  var intersects = raycaster.intersectObjects(obj, true);
-  console.log
-  if (intersects.length > 0 && intersects[0].distance <= 10) {
-    return intersects[0].object.name;
-  }
-  return null;
-}
+    forward.matrix.lookAt(forward.position, lookForward, new THREE.Vector3());
+    forward.rotation.setFromRotationMatrix(forward.matrix, forward.rotation.order);
+  },
 
-var EventEmitter = require('events').EventEmitter;
-var inherits = require('inherits');
-//module.exports = Widget;
-inherits(Widget, EventEmitter);
+  updateLove: function () {
 
-function Widget() {
-  // if(isHit()!== null){
-  //   this.emit('hit');
-  // }
-  this.alarm = false;
-  if (!(this instanceof Widget)) return new Widget();
-}
+    //this.updateCamera(inBetweenLove, cameraCounter, aheadOfLove, lookForwardForLove, idonu)
+    var t = ((cameraCounter + aheadOfLove) % loopTime) / loopTime;
+    var pos = tube.parameters.path.getPointAt(t);
 
-Widget.prototype.detect = function () {
-  if (isHit() !== null && !this.alarm) {
-    this.alarm = true;
-    console.log('ouch!')
-    this.emit('hit');
-  }
-};
+    idonu = tube.parameters.path.getTangentAt(t);
 
-var w = Widget();
-exports.w = w;
+    inBetweenLove.position.copy(pos);
 
-function render() {
-  //var time = Date.now();
-  //if (rollercoaster) {
-  updateCamera();
-  updateForward();
-  if (texts.length > 0) {
-    w.detect();
-  }
-  tubeMesh.visible = visible;
-  forward.visible = visible;
-  stats.update();
-  renderer.render(scene, rollercoaster ? splineCamera : camera);
+    lookForwardForLove = tube.parameters.path.getPointAt((t + magicNum / tube.parameters.path.getLength()) % 1)
 
-  //console.log(splineCamera.position);
-}
+    inBetweenLove.matrix.lookAt(inBetweenLove.position, lookForwardForLove, new THREE.Vector3());
+    inBetweenLove.rotation.setFromRotationMatrix(inBetweenLove.matrix, inBetweenLove.rotation.order);
+  },
 
-function updateForward() {
-  var tForward = ((cameraCounter + 500) % loopTime) / loopTime;
-  var pos = tube.parameters.path.getPointAt(tForward);
-  pos.multiplyScalar(scale);
+  updateTime: function () {
+    if (speed === 1) {
+      cameraCounter += 10
+      speedRecord = speed
+    } else if (speed === -1) {
+      cameraCounter -= 10;
+      speedRecord = speed;
+    }
 
-  forward.position.copy(pos);
+    if (cameraCounter <= 0) {
+      cameraCounter = loopTime
+    }
 
-  lookForward = tube.parameters.path.getPointAt((tForward + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
+    // this.updateCamera(splineCamera, cameraCounter, 0, lookAt)
+    var t = (cameraCounter % loopTime) / loopTime;
+    var pos = tube.parameters.path.getPointAt(t);
 
-  forward.matrix.lookAt(forward.position, lookForward, normal);
-  forward.rotation.setFromRotationMatrix(forward.matrix, forward.rotation.order);
+    splineCamera.position.copy(pos);
+    var lookAt = tube.parameters.path.getPointAt((t + magicNum / tube.parameters.path.getLength()) % 1)
 
-}
+    splineCamera.matrix.lookAt(splineCamera.position, lookAt, new THREE.Vector3());
+    splineCamera.rotation.setFromRotationMatrix(splineCamera.matrix, splineCamera.rotation.order);
 
-function updateCamera() {
-  if (exports.speed === 1) {
-    cameraCounter += 10;
-    speedRecord = exports.speed;
-  } else if (exports.speed === -1) {
-    cameraCounter -= 10;
-    speedRecord = exports.speed;
-  }
+  },
 
-  if (cameraCounter <= 0) {
-    cameraCounter = loopTime;
-  }
-  var t = (cameraCounter % loopTime) / loopTime;
-  var pos = tube.parameters.path.getPointAt(t);
-  pos.multiplyScalar(scale);
+  // i guess it's the problem of passing by reference?
+  updateCamera: function (objName, timer, aheadAmount, getPointAtName, getTangentAtName) {
+    var t = ((timer + aheadAmount) % loopTime) / loopTime
+    var pos = tube.parameters.path.getPointAt(t)
 
-  // var segments = tube.tangents.length;
-  // var pickt = t * segments;
-  // var pick = Math.floor(pickt);
-  // var pickNext = (pick + 1) % segments;
+    if (getPointAtName) {
+      getTangentAtName = tube.parameters.path.getTangentAt(t)
+    }
 
-  // binormal.subVectors(tube.binormals[pickNext], tube.binormals[pick]);
-  // binormal.multiplyScalar(pickt - pick).add(tube.binormals[pick]);
+    objName.position.copy(pos)
 
-  //var dir = tube.parameters.path.getTangentAt(t);
-  dir = tube.parameters.path.getTangent(t);
+    getPointAtName = tube.parameters.path.getPointAt((t + magicNum / tube.parameters.path.getLength()) % 1)
 
-  //var offset = 15;
+    objName.matrix.lookAt(objName.position, getPointAtName, new THREE.Vector3())
+    objName.rotation.setFromRotationMatrix(objName.matrix, objName.rotation.order)
+  },
 
-  //normal.copy(binormal).cross(dir);
+  goForward: function () {
+    speed = 1
+  },
 
-  // We move on a offset on its binormal
-  //pos.add(normal.clone().multiplyScalar(offset));
+  goBackward: function () {
+    speed = -1
+  },
 
-  splineCamera.position.copy(pos);
+  pause: function () {
+    speed = 0
+  },
 
-  cameraEye.position.copy(pos);
+  switchCamera: function () {
+    rollercoaster = !rollercoaster
+  },
 
-  var lookAt = tube.parameters.path.getPointAt((t + magicNum / tube.parameters.path.getLength()) % 1).multiplyScalar(scale);
+  hideTrack: function () {
+    visible = !visible
+  },
 
-  //this is called look ahead, not sure what it means
-  //lookAt.copy(pos).add(dir);
-  splineCamera.matrix.lookAt(splineCamera.position, lookAt, normal);
-  splineCamera.rotation.setFromRotationMatrix(splineCamera.matrix, splineCamera.rotation.order);
-  cameraHelper.update();
-}
+  switchSpline: function (scene) {
+    this.destorySomething(tubeMesh, scene)
+    splineIndex++
+    if (splineIndex > splines.length - 1) splineIndex = 0
+    tube = new THREE.TubeGeometry(splines[splineIndex], 100, 2, 4, true)
+    tubeMesh = new THREE.Mesh(tube, material)
+    scene.add(tubeMesh)
+  },
 
-function animate() {
-  requestAnimationFrame(animate);
-  planePP.lookAt(splineCamera.position);
-  planePP.position.copy(splineCamera.position);
-  render();
-}
+  onWindowResize: function (camera, renderer) {
+    camera.aspect = window.innerWidth / window.innerHeight
+      //camera.updateProjectionMatrix();
+    splineCamera.aspect = window.innerWidth / window.innerHeight
+    splineCamera.updateProjectionMatrix()
+    renderer.setSize(window.innerWidth, window.innerHeight)
+  },
 
-init();
-animate();
-
-function switchCamera() {
-  rollercoaster = !rollercoaster;
-}
-
-function switchSpline() {
-  scene.remove(tubeMesh);
-  //TODO: find out how to dispose geometry and material
-  tubeMesh.children.forEach(function (item) {
-      item.dispose();
-    })
-    //tubeMesh.dispose();
-  tubeMesh = null;
-  splineIndex++;
-  if (splineIndex > splines.length - 1) splineIndex = 0;
-  tube = new THREE.TubeGeometry(splines[splineIndex], 100, 2, 4, true);
-  tubeMesh = new THREE.Mesh(tube, material);
-  tubeMesh.scale.set(scale, scale, scale);
-  scene.add(tubeMesh);
-}
-
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  splineCamera.aspect = window.innerWidth / window.innerHeight;
-  splineCamera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  splineCamera: splineCamera,
+  w: w,
+  tubeMesh: tubeMesh,
+  gateLayers: gateLayers,
+  scaleControllers: scaleControllers
 }
