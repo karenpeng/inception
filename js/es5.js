@@ -22,18 +22,13 @@ function Controller(_history) {
       }
       setTimeout(function () {
         graphic.w.isObserving = true;
-      }, 100);
+      }, 200);
 
       //after 'return 0' or 'return 1'
     } else if (flag === 2) {
       //flag = 0;
       graphic.pause();
       graphic.changeText(task.value, task.string, info.id, stage.scene, false);
-      for (var i = 10; i < graphic.gateLayers + 10; i++) {
-        setTimeout(function () {
-          graphic.addGate(stage.scene);
-        }, i * 100)
-      }
       setTimeout(function () {
         next();
       }, 1000);
@@ -47,17 +42,12 @@ function Controller(_history) {
         graphic.goBackward()
         setTimeout(function () {
           graphic.w.isObserving = true;
-        }, 100);
+        }, 200);
       } else {
         flag = 0;
         //console.log('ouch!')
         graphic.pause()
         graphic.changeText(task.value, task.string, info.id, stage.scene, false)
-        for (var i = 10; i < graphic.gateLayers + 10; i++) {
-          setTimeout(function () {
-            graphic.addGate(stage.scene);
-          }, i * 100)
-        }
         setTimeout(function () {
           next();
         }, 1000);

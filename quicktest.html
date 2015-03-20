@@ -4,7 +4,7 @@
 <script type="text/javascript" src="js/vendor/three.min.js"></script>
 <script type="text/javascript" src="js/vendor/TrackballControls.js"></script>
 <script type="text/javascript" src="js/vendor/OrbitControls.js"></script>
-<script type="text/javascript" src="stats.js"></script>
+<!-- <script type="text/javascript" src="stats.js"></script> -->
 <script type="text/javascript">
   //if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
@@ -19,35 +19,35 @@
 
       function init() {
 
-        camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 1000 );
-        camera.position.z = 500;
+  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
+  camera.position.set(0, 20, 200);
 
 
 
         // world
 
         scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 );
+        //scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 );
 
-        var geometry = new THREE.CylinderGeometry( 0, 10, 30, 4, 1 );
-        var material =  new THREE.MeshLambertMaterial( { color:0xffffff, shading: THREE.FlatShading } );
+        // var geometry = new THREE.CylinderGeometry( 0, 10, 30, 4, 1 );
+        // var material =  new THREE.MeshLambertMaterial( { color:0xffffff, shading: THREE.FlatShading } );
 
-        for ( var i = 0; i < 500; i ++ ) {
+        // for ( var i = 0; i < 500; i ++ ) {
 
-          var mesh = new THREE.Mesh( geometry, material );
-          mesh.position.x = ( Math.random() - 0.5 ) * 1000;
-          mesh.position.y = ( Math.random() - 0.5 ) * 1000;
-          mesh.position.z = ( Math.random() - 0.5 ) * 1000;
-          mesh.updateMatrix();
-          mesh.matrixAutoUpdate = false;
-          scene.add( mesh );
+        //   var mesh = new THREE.Mesh( geometry, material );
+        //   mesh.position.x = ( Math.random() - 0.5 ) * 1000;
+        //   mesh.position.y = ( Math.random() - 0.5 ) * 1000;
+        //   mesh.position.z = ( Math.random() - 0.5 ) * 1000;
+        //   mesh.updateMatrix();
+        //   mesh.matrixAutoUpdate = false;
+        //   scene.add( mesh );
 
-        }
+        // }
 
-        var ball = new THREE.Mesh(new THREE.SphereGeometry(120,120,120), new THREE.MeshNormalMaterial);
-        //ball.position.z += 10;
-        scene.add(ball);
-        controls = new THREE.TrackballControls( ball );
+        // var ball = new THREE.Mesh(new THREE.SphereGeometry(120,120,120), new THREE.MeshNormalMaterial);
+        // //ball.position.z += 10;
+        // scene.add(ball);
+        // controls = new THREE.TrackballControls( ball );
 
         // controls.rotateSpeed = 1.0;
         // controls.zoomSpeed = 1.2;
@@ -61,26 +61,42 @@
 
         // controls.keys = [ 65, 83, 68 ];
 
-        controls.addEventListener( 'change', render );
+        // controls.addEventListener( 'change', render );
 
-        // lights
+        // // lights
 
-        light = new THREE.DirectionalLight( 0xffffff );
-        light.position.set( 1, 1, 1 );
-        scene.add( light );
+        // light = new THREE.DirectionalLight( 0xffffff );
+        // light.position.set( 1, 1, 1 );
+        // scene.add( light );
 
-        light = new THREE.DirectionalLight( 0x002288 );
-        light.position.set( -1, -1, -1 );
-        scene.add( light );
+        // light = new THREE.DirectionalLight( 0x002288 );
+        // light.position.set( -1, -1, -1 );
+        // scene.add( light );
 
-        light = new THREE.AmbientLight( 0x222222 );
-        scene.add( light );
+        // light = new THREE.AmbientLight( 0x222222 );
+        // scene.add( light );
+
+    var test = new THREE.Mesh(new THREE.SphereGeometry(2), new THREE.MeshBasicMaterial({
+      color: 0xffffff
+    }));
+    test.position.y = 10
+    test.visible = true
+    var test1 = new THREE.Mesh(new THREE.SphereGeometry(2), new THREE.MeshBasicMaterial({
+      color: 0xffffff
+    }));
+    test1.visible = false
+    var ctrl = new THREE.Object3D();
+    ctrl.position.y = 10
+    ctrl.add(test)
+    ctrl.add(test1)
+    ctrl.visible = true
+    scene.add(ctrl)
 
 
         // renderer
 
         renderer = new THREE.WebGLRenderer( { antialias: false } );
-        renderer.setClearColor( scene.fog.color );
+       // renderer.setClearColor( scene.fog.color );
         renderer.setPixelRatio( window.devicePixelRatio );
         renderer.setSize( window.innerWidth, window.innerHeight );
 
@@ -110,7 +126,7 @@
 
         renderer.setSize( window.innerWidth, window.innerHeight );
 
-        controls.handleResize();
+        //controls.handleResize();
 
         render();
 
@@ -119,7 +135,7 @@
       function animate() {
 
         requestAnimationFrame( animate );
-        controls.update();
+        //controls.update();
 
       }
 

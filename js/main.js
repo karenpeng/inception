@@ -2,7 +2,7 @@ var parse = require('./parse.js');
 //var incept = require('./incept.js');
 var graphic = require('./graphic.js');
 
-require('./editor.js').init();
+//require('./editor.js').init();
 
 function fibonacci(num) {
   if (num === 0) return 0;
