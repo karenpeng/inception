@@ -273,7 +273,7 @@ var aheadOfLove = 200
 
 var collisionPoints = []
 var scaleControllers = []
-var gateLayers = 6
+var gateLayers = 3
   // var texts = []
   // var gates = []
   // var gates = []
@@ -415,30 +415,20 @@ module.exports = {
 
         var tempPosition = new THREE.Vector3()
         tempPosition.copy(self.getPositionAtTheMoment(tempPosition, 'copy'))
-          //lastPosition = tempPosition.sub(lastPosition)
 
-        // var test = new THREE.Geometry()
-        // test.vertices.push(lastPosition)
-        // test.vertices.push(tempPosition)
+        // console.log(lastPosition.x)
+        // console.log(tempPosition.x)
 
-        // console.log('last ' + lastPosition.x)
-        // console.log('temp ' + tempPosition.x)
-
-        // var line = new THREE.Line(test, new THREE.LineBasicMaterial({
-        //   color: 0xffffff
-        // }))
-        // scene.add(line)
-
-        gate.position.copy(new THREE.Vector3())
+        //gate.position.copy(new THREE.Vector3())
         var location = new THREE.Vector3()
         location.subVectors(tempPosition, lastPosition)
-          //console.log(location)
+          //location.multiplyScalar(4)
         gate.position.copy(location)
+          //console.log(location.x)
         ctrl.add(gate)
 
         lastPosition.copy(tempPosition)
-          //console.log('yeah')
-      }, i * 200 + beginTime)
+      }, i * 300 + beginTime)
 
     }
 
@@ -453,9 +443,11 @@ module.exports = {
       if (speed === 1) {
         objName.position.copy(forward.position)
         objName.matrix.lookAt(objName.position, lookForward, new THREE.Vector3(0, 0, 0))
+          //objName.lookAt(lookForward)
       } else {
         objName.position.copy(inBetweenLove.position)
         objName.matrix.lookAt(objName.position, lookForwardForLove, new THREE.Vector3(0, 0, 0))
+          //objName.lookAt(lookForwardForLove)
       }
 
       objName.rotation.setFromRotationMatrix(objName.matrix, objName.rotation.order)
@@ -470,9 +462,9 @@ module.exports = {
         objName.position.copy(inBetweenLove.position)
           //objName.matrix.lookAt(objName.position, lookForwardForLove, new THREE.Vector3(0, 0, 0))
       }
-      break
 
-      //objName.rotation.setFromRotationMatrix(objName.matrix, objName.rotation.order)
+      objName.rotation.setFromRotationMatrix(objName.matrix, objName.rotation.order)
+      break
       // if (speed === 1) {
       //   objName.position.copy(forward.position)
       //   objName.matrix.lookAt(objName.position, lookForward, new THREE.Vector3(0, 0, 0))
