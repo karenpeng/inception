@@ -19,7 +19,8 @@ Widget.prototype.detect = function (something) {
     var info = {
       id: something.id,
       name: something.name,
-      destoryable: something.destoryable
+      destoryable: something.destoryable,
+      index: something.myIndex
     }
     this.emit('hit', info);
   }

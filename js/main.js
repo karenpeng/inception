@@ -2,7 +2,8 @@ var parse = require('./parse.js');
 //var incept = require('./incept.js');
 var graphic = require('./graphic.js');
 
-//require('./editor.js').init();
+var editor2 = require('./editor.js');
+var stage = require('./stage.js')
 
 function fibonacci(num) {
   if (num === 0) return 0;
@@ -10,17 +11,31 @@ function fibonacci(num) {
   return fibonacci(num - 1) + fibonacci(num - 2);
 }
 
-var call = 'fibonacci(3)';
+// setTimeout(function () {
+//   control(history)
+// }, 2000)
+document.getElementById('start').onclick = function () {
 
-var test = fibonacci.toString().concat(call);
+  var call = editor2.getValue();
 
-var history = parse(test).history;
+  var test = fibonacci.toString().concat(call);
 
-history.forEach(function (item) {
-  console.log(item.value + ' ' + item.string)
-})
+  try {
+    var history = parse(test).history;
+    //graphic.destoryEverything(stage.scene)
+    control(history)
+  } catch (e) {
+    alert(e)
+  }
+}
+
+// history.forEach(function (item) {
+//   console.log(item.value + ' ' + item.string)
+// })
 
 var control = require('./es5.js');
+
+graphic.switchCamera();
 
 window.onkeydown = function (e) {
   //space
@@ -46,9 +61,9 @@ window.onkeydown = function (e) {
     graphic.pause();
   }
   //enter
-  if (e.which === 13) {
-    e.preventDefault();
-    //func.next();
-    control(history)
-  }
+  // if (e.which === 13) {
+  //   e.preventDefault();
+  //   //func.next();
+  //   control(history)
+  // }
 }

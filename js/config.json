@@ -1,0 +1,8 @@
+{
+  "timeIncrement": 10,
+  "loopTime": 20000,
+  "aheadOfTime": 800,
+  "aheadOfLove": 200,
+  "textInterval": 1500,
+  "waitToTurnOnDetector": 200
+}

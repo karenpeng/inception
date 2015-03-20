@@ -1,6 +1,7 @@
 require('./vendor/CurveExtras.js');
-var createGate = require('./createGate.js')
+var createGate = require('./_createGate.js')
 var createText = require('./createText.js')
+var config = require('./config.json')
 
 var splineCamera, forward, inBetweenLove,
   splines, tube, material, tubeMesh, raycaster;
@@ -15,9 +16,10 @@ var speed = 1
 var speedRecord = speed
 var cameraCounter = 0
 
-var loopTime = 10000
-var aheadOfTime = 800
-var aheadOfLove = 200
+var loopTime = config.loopTime
+var aheadOfTime = config.aheadOfTime
+var aheadOfLove = config.aheadOfLove
+var timeIncrement = config.timeIncrement
 
 var collisionPoints = []
 var scaleControllers = []
@@ -52,16 +54,18 @@ module.exports = {
     forward = new THREE.Mesh(new THREE.SphereGeometry(0.2), new THREE.MeshBasicMaterial({
       color: 0xffffff
     }));
+    forward.visible = false
     forward.position.copy(splineCamera.position)
     scene.add(forward)
 
     inBetweenLove = new THREE.Object3D()
     inBetweenLove.position.copy(splineCamera.position)
 
-    var test = new THREE.Mesh(new THREE.SphereGeometry(0.2), new THREE.MeshBasicMaterial({
+    var test = new THREE.Mesh(new THREE.SphereGeometry(0.1), new THREE.MeshBasicMaterial({
       color: 0xffffff
     }));
     test.position.copy(splineCamera.position)
+    test.visible = false;
     inBetweenLove.add(test)
     scene.add(inBetweenLove)
 
@@ -73,8 +77,13 @@ module.exports = {
     scene.add(tubeMesh)
 
     /*testing*/
-    ball = new THREE.Mesh(new THREE.SphereGeometry(20, 20, 20), new THREE.MeshNormalMaterial)
-    scene.add(ball)
+    // ball = new THREE.Mesh(new THREE.SphereGeometry(20, 20, 20), new THREE.MeshNormalMaterial({
+    //   side: THREE.DoubleSide
+    // }))
+    // scene.add(ball)
+
+    // var gateTest = createGate()
+    // scene.add(gateTest)
 
   },
 
@@ -88,29 +97,36 @@ module.exports = {
       w.detect(this.isHit());
     }
     tubeMesh.visible = visible;
-
-    //expo *= 1.00000000000000000000000000000000000000000000001
-    //scalar += expo
-    scalar += 0.1
-      // ball.scale = new THREE.Vector3(scalar, scalar, scalar)
-    if (ball !== null) {
-      ball.scale.set(scalar, scalar, scalar)
-        //console.log(ball.matrixWorld.elements[0])
-      if (ball.matrixWorld.elements[0] > 10) {
-        console.log('by-bye ball')
-        scene.remove(ball)
-        ball.traverse(function (item) {
-          if (item instanceof THREE.Mesh) {
-            item.geometry.dispose()
-            item.material.dispose()
+    /*
+        //expo *= 1.00000000000000000000000000000000000000000000001
+        //scalar += expo
+        scalar += 0.1
+          // ball.scale = new THREE.Vector3(scalar, scalar, scalar)
+        if (ball !== null) {
+          ball.scale.set(scalar, scalar, scalar)
+            //console.log(ball.matrixWorld.elements[0])
+          if (ball.matrixWorld.elements[0] > 20) {
+            console.log('by-bye ball')
+            scene.remove(ball)
+            ball.traverse(function (item) {
+              if (item instanceof THREE.Mesh) {
+                item.geometry.dispose()
+                item.material.dispose()
+              }
+            })
+            ball = null
           }
-        })
-        ball = null
-      }
-    }
-
+        }
+    */
     // if (scaleControllers.length) {
     //   console.log(scaleControllers[scaleControllers.length - 1].children.length)
+    // }
+    // if (scaleControllers.length) {
+    //   scaleControllers.forEach(function (ctrl, index) {
+    //     if (ctrl.matrixWorld.elements[0] < 10 && ctrl.growing) ctrl.scalar += 0.001
+    //     ctrl.scale.set(ctrl.scalar, ctrl.scalar, ctrl.scalar)
+
+    //   })
     // }
 
     renderer.render(scene, rollercoaster ? splineCamera : camera);
@@ -121,13 +137,14 @@ module.exports = {
     //scaleControllers[index].add(gate)
   },
 
-  addText: function (_text, tag, scene, _destoried) {
+  addText: function (_text, tag, scene, _destoried, index) {
 
     //add collistionPoint
     var collisionPoint = new THREE.Mesh(new THREE.SphereGeometry(0.2), new THREE.MeshNormalMaterial())
     collisionPoint.name = tag
     collisionPoint.visible = false
     collisionPoint.destoryable = _destoried
+    collisionPoint.myIndex = index
     this.getPositionAtTheMoment(collisionPoint, 'child')
     scene.add(collisionPoint)
     collisionPoints.push(collisionPoint)
@@ -143,43 +160,62 @@ module.exports = {
     text.position.copy(new THREE.Vector3())
     ctrl.add(text)
 
-    var lastPosition = new THREE.Vector3()
-    lastPosition.copy(this.getPositionAtTheMoment(lastPosition, 'copy'))
+    var gate = createGate();
+    this.getPositionAtTheMoment(gate, 'child')
+    gate.position.copy(new THREE.Vector3())
+    ctrl.add(gate)
+      // var lastPosition = new THREE.Vector3()
+      // lastPosition.copy(this.getPositionAtTheMoment(lastPosition, 'copy'))
 
-    var beginTime;
-    if (speed === 1) {
-      beginTime = 0;
-    } else {
-      beginTime = 1000;
-    }
+    // var test3 = new THREE.Mesh(new THREE.BoxGeometry(6, 6, 6), new THREE.MeshNormalMaterial({
+    //   side: THREE.DoubleSide
+    // }));
+    // this.getPositionAtTheMoment(test3, 'child')
+    // test3.position.copy(new THREE.Vector3())
 
-    for (var i = 0; i < gateLayers; i++) {
-      var self = this;
+    // var tempPosition = new THREE.Vector3()
+    // tempPosition.copy(this.getPositionAtTheMoment(tempPosition, 'copy'))
+    // var location = new THREE.Vector3()
+    // location.subVectors(tempPosition, ctrl.position)
+    // test3.position.copy(location)
+    // ctrl.add(test3)
 
-      setTimeout(function () {
-        //self.addGate(scene, scaleControllers.length - 1);
-        var gate = createGate()
-        self.getPositionAtTheMoment(gate, 'child')
+    // var beginTime;
+    // if (speed === 1) {
+    //   beginTime = 0;
+    // } else {
+    //   beginTime = 1000;
+    // }
 
-        var tempPosition = new THREE.Vector3()
-        tempPosition.copy(self.getPositionAtTheMoment(tempPosition, 'copy'))
+    // for (var i = 0; i < gateLayers; i++) {
+    //   var self = this;
 
-        // console.log(lastPosition.x)
-        // console.log(tempPosition.x)
+    //   setTimeout(function () {
+    //     //self.addGate(scene, scaleControllers.length - 1);
+    //     var gate = createGate()
+    //     self.getPositionAtTheMoment(gate, 'child')
 
-        //gate.position.copy(new THREE.Vector3())
-        var location = new THREE.Vector3()
-        location.subVectors(tempPosition, lastPosition)
-          //location.multiplyScalar(4)
-        gate.position.copy(location)
-          //console.log(location.x)
-        ctrl.add(gate)
+    //     var tempPosition = new THREE.Vector3()
+    //     tempPosition.copy(self.getPositionAtTheMoment(tempPosition, 'copy'))
 
-        lastPosition.copy(tempPosition)
-      }, i * 300 + beginTime)
+    //     // console.log(lastPosition.x)
+    //     // console.log(tempPosition.x)
 
-    }
+    //     //gate.position.copy(new THREE.Vector3())
+    //     var location = new THREE.Vector3()
+    //     location.subVectors(tempPosition, lastPosition)
+    //       //location.multiplyScalar(4)
+    //     gate.position.copy(location)
+    //       //console.log(location.x)
+    //     ctrl.add(gate)
 
+    //     lastPosition.copy(tempPosition)
+    //   }, i * 300 + beginTime)
+
+    // }
+    ctrl.scalar = 0.3
+    ctrl.scale.set(scalar, scalar, scalar)
+    ctrl.growing = true
     scene.add(ctrl)
 
   },
@@ -261,9 +297,23 @@ module.exports = {
       //}
   },
 
-  changeText: function (_text, tag, id, scene, destoried) {
+  destoryEverything: function (scene) {
+    scene.traverse(function (item) {
+      if (item instanceof THREE.Mesh) {
+        item.geometry.dispose()
+        item.material.dispose()
+      }
+      //item = null
+      scene.remove(item)
+    })
+    collisionPoints = []
+    scaleControllers = []
+
+  },
+
+  changeText: function (_text, tag, id, scene, destoried, index) {
     this.destoryText(id, scene)
-    this.addText(_text, tag, scene, destoried)
+    this.addText(_text, tag, scene, destoried, index)
   },
 
   isHit: function () {
@@ -312,11 +362,11 @@ module.exports = {
 
   updateTime: function () {
     if (speed === 1) {
-      cameraCounter += 10
+      cameraCounter += timeIncrement
       speedRecord = speed
     } else if (speed === -1) {
-      cameraCounter -= 10;
-      speedRecord = speed;
+      cameraCounter -= timeIncrement
+      speedRecord = speed
     }
 
     if (cameraCounter <= 0) {
@@ -393,5 +443,6 @@ module.exports = {
   w: w,
   tubeMesh: tubeMesh,
   gateLayers: gateLayers,
+  collisionPoints: collisionPoints,
   scaleControllers: scaleControllers
 }

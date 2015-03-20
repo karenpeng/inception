@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"/Users/karen/Documents/my_project/inception/js/createGate.js":[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"/Users/karen/Documents/my_project/inception/js/_createGate.js":[function(require,module,exports){
 module.exports = function () {
   var plane1 = new THREE.PlaneBufferGeometry(30, 10, 3, 1);
   //var center = new THREE.SphereGeometry(2, 2, 2);
@@ -18,7 +18,7 @@ module.exports = function () {
   var plane4 = plane3.clone();
   plane4.applyMatrix(new THREE.Matrix4().makeTranslation(-20, 0, 0));
 
-  var planeParent = new THREE.Geometry();
+  //var planeParent = new THREE.Geometry();
 
   //planeParent.merge(center);
   // planeParent.merge(plane1);
@@ -40,6 +40,15 @@ module.exports = function () {
 
   return planeParent;
 
+}
+},{}],"/Users/karen/Documents/my_project/inception/js/config.json":[function(require,module,exports){
+module.exports={
+  "timeIncrement": 10,
+  "loopTime": 20000,
+  "aheadOfTime": 800,
+  "aheadOfLove": 200,
+  "textInterval": 1500,
+  "waitToTurnOnDetector": 200
 }
 },{}],"/Users/karen/Documents/my_project/inception/js/createText.js":[function(require,module,exports){
 module.exports = function (text, tag) {
@@ -129,41 +138,116 @@ module.exports = {
   paramNumber: 0,
   history: []
 }
-},{}],"/Users/karen/Documents/my_project/inception/js/es5.js":[function(require,module,exports){
-var graphic = require('./graphic.js');
-var stage = require('./stage.js');
-//var w = graphic.Widget();
+},{}],"/Users/karen/Documents/my_project/inception/js/editor.js":[function(require,module,exports){
+// var editor2
 
-module.exports = Controller;
+// module.exports = {
+
+//   init: function () {
+//     var editor1 = ace.edit("editor1");
+//     editor1.setTheme("ace/theme/monokai");
+//     editor1.getSession().setMode("ace/mode/javascript");
+
+//     editor2 = ace.edit("editor2");
+//     editor2.setTheme("ace/theme/monokai");
+//     editor2.getSession().setMode("ace/mode/javascript");
+
+//     // var editor3 = ace.edit("editor3");
+//     // editor3.setTheme("ace/theme/monokai");
+//     // editor3.getSession().setMode("ace/mode/javascript");
+//   },
+
+//   getValue: function (name) {
+//     switch (name) {
+//     case '1':
+//       return editor1.getValue();
+//     case '2':
+//       return editor2.getValue();
+//     }
+//   },
+
+//   getLineNum: function (string) {
+//     var lines = editor1.session.getAllLines();
+//     var stringNum = [];
+//     for (var i = 0; i < lines.length; i++) {
+//       if (lines[i].indexOf(string) !== -1) stringNum.push(i);
+//     }
+//     return stringNum;
+//   },
+
+//   addMarker: function () {
+
+//   },
+
+//   editor2: editor2
+// }
+var editor2
+
+function init() {
+  var editor1 = ace.edit("editor1");
+  editor1.setTheme("ace/theme/monokai");
+  editor1.getSession().setMode("ace/mode/javascript");
+
+  editor2 = ace.edit("editor2");
+  editor2.setTheme("ace/theme/monokai");
+  editor2.getSession().setMode("ace/mode/javascript");
+
+  // var editor3 = ace.edit("editor3");
+  // editor3.setTheme("ace/theme/monokai");
+  // editor3.getSession().setMode("ace/mode/javascript");
+}
+
+init()
+
+module.exports = editor2
+},{}],"/Users/karen/Documents/my_project/inception/js/es5.js":[function(require,module,exports){
+var graphic = require('./graphic.js')
+var stage = require('./stage.js')
+  //var w = graphic.Widget();
+var config = require('./config.json')
+
+module.exports = Controller
 
 function Controller(_history) {
-  var history = _history;
-  var flag = 0;
-  var task;
+  var history = _history
+  var flag = 0
+  var index = 0
 
   graphic.w.on('hit', function (info) {
+
+    // if (flag === 0) {
+    //   //console.log(info.something)
+    //   var indexToScale = null
+    //   for (var i = 0; i < graphic.collisionPoints.length; i++) {
+    //     if (graphic.collisionPoints[i].id === info.id) {
+    //       indexToScale = i
+    //       break
+    //     }
+    //   }
+    //   graphic.scaleControllers[indexToScale].growing = false
+    // }
 
     //hit 'return 1' or hit 'return 0' or 'return fib(n-1) + fib(n-2)'
     if (flag === 1) {
       graphic.destoryText(info.id, stage.scene)
       graphic.goBackward()
       if (info.name === 'return fibonacci(num - 1) + fibonacci(num - 2);') {
-        flag = 3;
+        flag = 3
       } else {
-        flag = 2;
+        flag = 2
       }
       setTimeout(function () {
-        graphic.w.isObserving = true;
-      }, 200);
+        graphic.w.isObserving = true
+      }, config.waitToTurnOnDetector)
 
       //after 'return 0' or 'return 1'
     } else if (flag === 2) {
-      //flag = 0;
-      graphic.pause();
-      graphic.changeText(task.value, task.string, info.id, stage.scene, false);
+      flag = 0;
+      graphic.pause()
+      graphic.changeText(task.value, task.string, info.id, stage.scene, false)
       setTimeout(function () {
-        next();
-      }, 1000);
+        next()
+      }, config.textInterval)
 
     }
 
@@ -173,16 +257,16 @@ function Controller(_history) {
         graphic.destoryText(info.id, stage.scene)
         graphic.goBackward()
         setTimeout(function () {
-          graphic.w.isObserving = true;
-        }, 200);
+          graphic.w.isObserving = true
+        }, config.waitToTurnOnDetector)
       } else {
-        flag = 0;
-        //console.log('ouch!')
+        flag = 0
+          //console.log('ouch!')
         graphic.pause()
-        graphic.changeText(task.value, task.string, info.id, stage.scene, false)
+        graphic.changeText(task.value, task.string, info.id, stage.scene, false, index)
         setTimeout(function () {
-          next();
-        }, 1000);
+          next()
+        }, config.textInterval)
       }
     }
 
@@ -191,36 +275,40 @@ function Controller(_history) {
   function next() {
 
     if (history.length < 1) {
-      graphic.goBackward();
-      return;
+      graphic.goBackward()
+      return
     }
 
+    //index++
     graphic.goForward();
-    task = history.shift();
+    task = history.shift()
 
     if (task.string === undefined) {
 
-      graphic.addText(task.value, task.string, stage.scene, true);
-      flag = 0;
-      graphic.w.isObserving = false;
+      graphic.addText(task.value, task.string, stage.scene, true, index)
+      flag = 0
+      graphic.w.isObserving = true;
       setTimeout(function () {
         next();
       }, 1000);
+      //setTimeout(function () {
+      //graphic.w.isObserving = true
+      //}, config.waitToTurnOnDetector)
 
     } else {
 
-      graphic.addText(task.string, task.string, stage.scene, true);
-      flag = 1;
+      graphic.addText(task.string, task.string, stage.scene, true, index)
+      flag = 1
       setTimeout(function () {
-        graphic.w.isObserving = true;
-      }, 100);
+        graphic.w.isObserving = true
+      }, 100)
 
     }
   }
 
   next();
 }
-},{"./graphic.js":"/Users/karen/Documents/my_project/inception/js/graphic.js","./stage.js":"/Users/karen/Documents/my_project/inception/js/stage.js"}],"/Users/karen/Documents/my_project/inception/js/event.js":[function(require,module,exports){
+},{"./config.json":"/Users/karen/Documents/my_project/inception/js/config.json","./graphic.js":"/Users/karen/Documents/my_project/inception/js/graphic.js","./stage.js":"/Users/karen/Documents/my_project/inception/js/stage.js"}],"/Users/karen/Documents/my_project/inception/js/event.js":[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('inherits');
 
@@ -242,7 +330,8 @@ Widget.prototype.detect = function (something) {
     var info = {
       id: something.id,
       name: something.name,
-      destoryable: something.destoryable
+      destoryable: something.destoryable,
+      index: something.myIndex
     }
     this.emit('hit', info);
   }
@@ -251,8 +340,9 @@ Widget.prototype.detect = function (something) {
 module.exports = Widget;
 },{"events":"/usr/local/lib/node_modules/watchify/node_modules/browserify/node_modules/events/events.js","inherits":"/Users/karen/Documents/my_project/inception/node_modules/inherits/inherits_browser.js"}],"/Users/karen/Documents/my_project/inception/js/graphic.js":[function(require,module,exports){
 require('./vendor/CurveExtras.js');
-var createGate = require('./createGate.js')
+var createGate = require('./_createGate.js')
 var createText = require('./createText.js')
+var config = require('./config.json')
 
 var splineCamera, forward, inBetweenLove,
   splines, tube, material, tubeMesh, raycaster;
@@ -267,9 +357,10 @@ var speed = 1
 var speedRecord = speed
 var cameraCounter = 0
 
-var loopTime = 10000
-var aheadOfTime = 800
-var aheadOfLove = 200
+var loopTime = config.loopTime
+var aheadOfTime = config.aheadOfTime
+var aheadOfLove = config.aheadOfLove
+var timeIncrement = config.timeIncrement
 
 var collisionPoints = []
 var scaleControllers = []
@@ -304,16 +395,18 @@ module.exports = {
     forward = new THREE.Mesh(new THREE.SphereGeometry(0.2), new THREE.MeshBasicMaterial({
       color: 0xffffff
     }));
+    forward.visible = false
     forward.position.copy(splineCamera.position)
     scene.add(forward)
 
     inBetweenLove = new THREE.Object3D()
     inBetweenLove.position.copy(splineCamera.position)
 
-    var test = new THREE.Mesh(new THREE.SphereGeometry(0.2), new THREE.MeshBasicMaterial({
+    var test = new THREE.Mesh(new THREE.SphereGeometry(0.1), new THREE.MeshBasicMaterial({
       color: 0xffffff
     }));
     test.position.copy(splineCamera.position)
+    test.visible = false;
     inBetweenLove.add(test)
     scene.add(inBetweenLove)
 
@@ -325,8 +418,13 @@ module.exports = {
     scene.add(tubeMesh)
 
     /*testing*/
-    ball = new THREE.Mesh(new THREE.SphereGeometry(20, 20, 20), new THREE.MeshNormalMaterial)
-    scene.add(ball)
+    // ball = new THREE.Mesh(new THREE.SphereGeometry(20, 20, 20), new THREE.MeshNormalMaterial({
+    //   side: THREE.DoubleSide
+    // }))
+    // scene.add(ball)
+
+    // var gateTest = createGate()
+    // scene.add(gateTest)
 
   },
 
@@ -340,29 +438,36 @@ module.exports = {
       w.detect(this.isHit());
     }
     tubeMesh.visible = visible;
-
-    //expo *= 1.00000000000000000000000000000000000000000000001
-    //scalar += expo
-    scalar += 0.1
-      // ball.scale = new THREE.Vector3(scalar, scalar, scalar)
-    if (ball !== null) {
-      ball.scale.set(scalar, scalar, scalar)
-        //console.log(ball.matrixWorld.elements[0])
-      if (ball.matrixWorld.elements[0] > 10) {
-        console.log('by-bye ball')
-        scene.remove(ball)
-        ball.traverse(function (item) {
-          if (item instanceof THREE.Mesh) {
-            item.geometry.dispose()
-            item.material.dispose()
+    /*
+        //expo *= 1.00000000000000000000000000000000000000000000001
+        //scalar += expo
+        scalar += 0.1
+          // ball.scale = new THREE.Vector3(scalar, scalar, scalar)
+        if (ball !== null) {
+          ball.scale.set(scalar, scalar, scalar)
+            //console.log(ball.matrixWorld.elements[0])
+          if (ball.matrixWorld.elements[0] > 20) {
+            console.log('by-bye ball')
+            scene.remove(ball)
+            ball.traverse(function (item) {
+              if (item instanceof THREE.Mesh) {
+                item.geometry.dispose()
+                item.material.dispose()
+              }
+            })
+            ball = null
           }
-        })
-        ball = null
-      }
-    }
-
+        }
+    */
     // if (scaleControllers.length) {
     //   console.log(scaleControllers[scaleControllers.length - 1].children.length)
+    // }
+    // if (scaleControllers.length) {
+    //   scaleControllers.forEach(function (ctrl, index) {
+    //     if (ctrl.matrixWorld.elements[0] < 10 && ctrl.growing) ctrl.scalar += 0.001
+    //     ctrl.scale.set(ctrl.scalar, ctrl.scalar, ctrl.scalar)
+
+    //   })
     // }
 
     renderer.render(scene, rollercoaster ? splineCamera : camera);
@@ -373,13 +478,14 @@ module.exports = {
     //scaleControllers[index].add(gate)
   },
 
-  addText: function (_text, tag, scene, _destoried) {
+  addText: function (_text, tag, scene, _destoried, index) {
 
     //add collistionPoint
     var collisionPoint = new THREE.Mesh(new THREE.SphereGeometry(0.2), new THREE.MeshNormalMaterial())
     collisionPoint.name = tag
     collisionPoint.visible = false
     collisionPoint.destoryable = _destoried
+    collisionPoint.myIndex = index
     this.getPositionAtTheMoment(collisionPoint, 'child')
     scene.add(collisionPoint)
     collisionPoints.push(collisionPoint)
@@ -395,43 +501,62 @@ module.exports = {
     text.position.copy(new THREE.Vector3())
     ctrl.add(text)
 
-    var lastPosition = new THREE.Vector3()
-    lastPosition.copy(this.getPositionAtTheMoment(lastPosition, 'copy'))
+    var gate = createGate();
+    this.getPositionAtTheMoment(gate, 'child')
+    gate.position.copy(new THREE.Vector3())
+    ctrl.add(gate)
+      // var lastPosition = new THREE.Vector3()
+      // lastPosition.copy(this.getPositionAtTheMoment(lastPosition, 'copy'))
 
-    var beginTime;
-    if (speed === 1) {
-      beginTime = 0;
-    } else {
-      beginTime = 1000;
-    }
+    // var test3 = new THREE.Mesh(new THREE.BoxGeometry(6, 6, 6), new THREE.MeshNormalMaterial({
+    //   side: THREE.DoubleSide
+    // }));
+    // this.getPositionAtTheMoment(test3, 'child')
+    // test3.position.copy(new THREE.Vector3())
 
-    for (var i = 0; i < gateLayers; i++) {
-      var self = this;
+    // var tempPosition = new THREE.Vector3()
+    // tempPosition.copy(this.getPositionAtTheMoment(tempPosition, 'copy'))
+    // var location = new THREE.Vector3()
+    // location.subVectors(tempPosition, ctrl.position)
+    // test3.position.copy(location)
+    // ctrl.add(test3)
 
-      setTimeout(function () {
-        //self.addGate(scene, scaleControllers.length - 1);
-        var gate = createGate()
-        self.getPositionAtTheMoment(gate, 'child')
+    // var beginTime;
+    // if (speed === 1) {
+    //   beginTime = 0;
+    // } else {
+    //   beginTime = 1000;
+    // }
 
-        var tempPosition = new THREE.Vector3()
-        tempPosition.copy(self.getPositionAtTheMoment(tempPosition, 'copy'))
+    // for (var i = 0; i < gateLayers; i++) {
+    //   var self = this;
 
-        // console.log(lastPosition.x)
-        // console.log(tempPosition.x)
+    //   setTimeout(function () {
+    //     //self.addGate(scene, scaleControllers.length - 1);
+    //     var gate = createGate()
+    //     self.getPositionAtTheMoment(gate, 'child')
 
-        //gate.position.copy(new THREE.Vector3())
-        var location = new THREE.Vector3()
-        location.subVectors(tempPosition, lastPosition)
-          //location.multiplyScalar(4)
-        gate.position.copy(location)
-          //console.log(location.x)
-        ctrl.add(gate)
+    //     var tempPosition = new THREE.Vector3()
+    //     tempPosition.copy(self.getPositionAtTheMoment(tempPosition, 'copy'))
 
-        lastPosition.copy(tempPosition)
-      }, i * 300 + beginTime)
+    //     // console.log(lastPosition.x)
+    //     // console.log(tempPosition.x)
 
-    }
+    //     //gate.position.copy(new THREE.Vector3())
+    //     var location = new THREE.Vector3()
+    //     location.subVectors(tempPosition, lastPosition)
+    //       //location.multiplyScalar(4)
+    //     gate.position.copy(location)
+    //       //console.log(location.x)
+    //     ctrl.add(gate)
 
+    //     lastPosition.copy(tempPosition)
+    //   }, i * 300 + beginTime)
+
+    // }
+    ctrl.scalar = 0.3
+    ctrl.scale.set(scalar, scalar, scalar)
+    ctrl.growing = true
     scene.add(ctrl)
 
   },
@@ -513,9 +638,23 @@ module.exports = {
       //}
   },
 
-  changeText: function (_text, tag, id, scene, destoried) {
+  destoryEverything: function (scene) {
+    scene.traverse(function (item) {
+      if (item instanceof THREE.Mesh) {
+        item.geometry.dispose()
+        item.material.dispose()
+      }
+      //item = null
+      scene.remove(item)
+    })
+    collisionPoints = []
+    scaleControllers = []
+
+  },
+
+  changeText: function (_text, tag, id, scene, destoried, index) {
     this.destoryText(id, scene)
-    this.addText(_text, tag, scene, destoried)
+    this.addText(_text, tag, scene, destoried, index)
   },
 
   isHit: function () {
@@ -564,11 +703,11 @@ module.exports = {
 
   updateTime: function () {
     if (speed === 1) {
-      cameraCounter += 10
+      cameraCounter += timeIncrement
       speedRecord = speed
     } else if (speed === -1) {
-      cameraCounter -= 10;
-      speedRecord = speed;
+      cameraCounter -= timeIncrement
+      speedRecord = speed
     }
 
     if (cameraCounter <= 0) {
@@ -645,14 +784,16 @@ module.exports = {
   w: w,
   tubeMesh: tubeMesh,
   gateLayers: gateLayers,
+  collisionPoints: collisionPoints,
   scaleControllers: scaleControllers
 }
-},{"./createGate.js":"/Users/karen/Documents/my_project/inception/js/createGate.js","./createText.js":"/Users/karen/Documents/my_project/inception/js/createText.js","./event.js":"/Users/karen/Documents/my_project/inception/js/event.js","./splines.js":"/Users/karen/Documents/my_project/inception/js/splines.js","./vendor/CurveExtras.js":"/Users/karen/Documents/my_project/inception/js/vendor/CurveExtras.js"}],"/Users/karen/Documents/my_project/inception/js/main.js":[function(require,module,exports){
+},{"./_createGate.js":"/Users/karen/Documents/my_project/inception/js/_createGate.js","./config.json":"/Users/karen/Documents/my_project/inception/js/config.json","./createText.js":"/Users/karen/Documents/my_project/inception/js/createText.js","./event.js":"/Users/karen/Documents/my_project/inception/js/event.js","./splines.js":"/Users/karen/Documents/my_project/inception/js/splines.js","./vendor/CurveExtras.js":"/Users/karen/Documents/my_project/inception/js/vendor/CurveExtras.js"}],"/Users/karen/Documents/my_project/inception/js/main.js":[function(require,module,exports){
 var parse = require('./parse.js');
 //var incept = require('./incept.js');
 var graphic = require('./graphic.js');
 
-//require('./editor.js').init();
+var editor2 = require('./editor.js');
+var stage = require('./stage.js')
 
 function fibonacci(num) {
   if (num === 0) return 0;
@@ -660,17 +801,31 @@ function fibonacci(num) {
   return fibonacci(num - 1) + fibonacci(num - 2);
 }
 
-var call = 'fibonacci(3)';
+// setTimeout(function () {
+//   control(history)
+// }, 2000)
+document.getElementById('start').onclick = function () {
 
-var test = fibonacci.toString().concat(call);
+  var call = editor2.getValue();
 
-var history = parse(test).history;
+  var test = fibonacci.toString().concat(call);
 
-history.forEach(function (item) {
-  console.log(item.value + ' ' + item.string)
-})
+  try {
+    var history = parse(test).history;
+    //graphic.destoryEverything(stage.scene)
+    control(history)
+  } catch (e) {
+    alert(e)
+  }
+}
+
+// history.forEach(function (item) {
+//   console.log(item.value + ' ' + item.string)
+// })
 
 var control = require('./es5.js');
+
+graphic.switchCamera();
 
 window.onkeydown = function (e) {
   //space
@@ -696,13 +851,13 @@ window.onkeydown = function (e) {
     graphic.pause();
   }
   //enter
-  if (e.which === 13) {
-    e.preventDefault();
-    //func.next();
-    control(history)
-  }
+  // if (e.which === 13) {
+  //   e.preventDefault();
+  //   //func.next();
+  //   control(history)
+  // }
 }
-},{"./es5.js":"/Users/karen/Documents/my_project/inception/js/es5.js","./graphic.js":"/Users/karen/Documents/my_project/inception/js/graphic.js","./parse.js":"/Users/karen/Documents/my_project/inception/js/parse.js"}],"/Users/karen/Documents/my_project/inception/js/parse.js":[function(require,module,exports){
+},{"./editor.js":"/Users/karen/Documents/my_project/inception/js/editor.js","./es5.js":"/Users/karen/Documents/my_project/inception/js/es5.js","./graphic.js":"/Users/karen/Documents/my_project/inception/js/graphic.js","./parse.js":"/Users/karen/Documents/my_project/inception/js/parse.js","./stage.js":"/Users/karen/Documents/my_project/inception/js/stage.js"}],"/Users/karen/Documents/my_project/inception/js/parse.js":[function(require,module,exports){
 // function fibonacci(num) {
 // _enter(3,arguments);
 // if (num === 0) return _exit(0,0, "return 0;");;

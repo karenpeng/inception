@@ -3,8 +3,7 @@ module.exports = function () {
   //var center = new THREE.SphereGeometry(2, 2, 2);
 
   //var plane1 = new THREE.PlaneGeometry(30, 10, 3, 1);
-  //plane1.applyMatrix(new THREE.Matrix4().makeTranslation(0, -10, 0));
-  plane1.applyMatrix(new THREE.Matrix4().makeRotationX(Math.PI / 2));
+  plane1.applyMatrix(new THREE.Matrix4().makeTranslation(0, -10, 0));
   // var material = new THREE.MeshDepthMaterial();
   var material = new THREE.MeshNormalMaterial();
   material.side = THREE.DoubleSide;
@@ -17,8 +16,6 @@ module.exports = function () {
 
   var plane4 = plane3.clone();
   plane4.applyMatrix(new THREE.Matrix4().makeTranslation(-20, 0, 0));
-
-  //var plane5 = plane
 
   //var planeParent = new THREE.Geometry();
 
@@ -35,9 +32,9 @@ module.exports = function () {
   var plane3Mesh = new THREE.Mesh(plane3, material);
   var plane4Mesh = new THREE.Mesh(plane4, material);
   var planeParent = new THREE.Object3D();
-  //planeParent.add(plane1Mesh);
+  planeParent.add(plane1Mesh);
   planeParent.add(plane2Mesh);
-  //planeParent.add(plane3Mesh);
+  planeParent.add(plane3Mesh);
   planeParent.add(plane4Mesh);
 
   return planeParent;
